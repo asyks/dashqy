@@ -20,8 +20,8 @@ templates = os.path.join(path, 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(templates), autoescape=True) 
 
 decorator = OAuth2Decorator(
-  client_id='your_client_id',
-  client_secret='your_client_secret',
+  client_id='1048565728869.apps.googleusercontent.com',
+  client_secret='7UniAw2jEuomwSpRpRI5kbzz',
   scope='https://www.googleapis.com/auth/calendar')
 
 service = build('calendar', 'v3')
@@ -74,10 +74,15 @@ class Handler(webapp2.RequestHandler):
     else:
       self.format = 'html'
 
-class Home(Handler): ## Handler for Home page requests
+class Home(webapp2.RequestHandler): ## Handler for Home page requests
 
+  @decorator.oauth_required
   def get(self):
-    self.render('home.html', **self.params)
+    http = decorator.http()
+    request = service.events().list(calendarId='primary')	
+    response = request.execute(http=http)
+    logging.warning(response)
+    ## self.render('home.html', **self.params)
 
 class Logout(Handler): ## Handler for Home page requests
 
