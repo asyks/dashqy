@@ -4,6 +4,7 @@ import httplib2, uritemplate, gflags, gflags_validators
 from apiclient.discovery import build
 from oauth2client.appengine import OAuth2Decorator
 from oauth2client.client import flow_from_clientsecrets
+from oauth2client.client import OAuth2WebServerFlow
 from oauth2client.tools import run
 from hello_analytics_api_v3_auth import *
 ## standard python library imports
@@ -22,6 +23,11 @@ path = os.path.dirname(__file__)
 templates = os.path.join(path, 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(templates), autoescape=True) 
 
+client_id = '1048565728869.apps.googleusercontent.com'
+client_secret = '7UniAw2jEuomwSpRpRI5kbzz'
+scope = 'https://www.googleapis.com/auth/analytics.readonly'
+redirect_uri = 'http://modea-dash.appspot.com/oauth2callback'
+
 calendar_decorator = OAuth2Decorator(
   client_id='1048565728869.apps.googleusercontent.com',
   client_secret='7UniAw2jEuomwSpRpRI5kbzz',
@@ -31,6 +37,11 @@ ga_decorator = OAuth2Decorator(
 	client_id='1048565728869.apps.googleusercontent.com',
 	client_secret='7UniAw2jEuomwSpRpRI5kbzz',
 	scope='https://www.googleapis.com/auth/analytics.readonly')
+
+flow = OAuth2WebServerFlow(client_id=client_id,
+                           client_secret=client_secret,
+                           scope=scope,
+                           redirect_uri=redirect_uri)
 
 calendar_service = build('calendar', 'v3')
 ga_service = build('analytics', 'v3')
@@ -95,7 +106,7 @@ class Home(webapp2.RequestHandler): ## Handler for Home page requests
 
 class CALsandbox(webapp2.RequestHandler): ## Handler for Home page requests
 
-  @calendar_decorator.oauth_required
+  @calendar_decorator.oauth_aware
   def get(self):
     if calendar_decorator.has_credentials():
       http = calendar_decorator.http()
@@ -108,7 +119,7 @@ class CALsandbox(webapp2.RequestHandler): ## Handler for Home page requests
 
 class GAsandbox(webapp2.RequestHandler): ## Handler for Home page requests
 
-  @ga_decorator.oauth_required
+  @ga_decorator.oauth_aware
   def get(self):
     if ga_decorator.has_credentials():
       http = ga_decorator.http()
@@ -121,6 +132,14 @@ class GAsandbox(webapp2.RequestHandler): ## Handler for Home page requests
     else:
       url = decorator.authorize_url()
       self.redirect(url)
+
+class GAsandbox2(webapp2.RequestHandler): ## Handler for Home page requests
+
+  @ga_decorator.oauth_aware
+  def get(self):
+    logging.warning(flow)
+    auth_uri = flow.step1_get_authorize_url()
+    self.redirect(auth_uri)
 
 class Logout(Handler): ## Handler for Home page requests
 
@@ -142,6 +161,7 @@ app = webapp2.WSGIApplication([(r'/?', Home),
                                (ga_decorator.callback_path, ga_decorator.callback_handler()),
                                (r'/cal/?', CALsandbox),
                                (r'/ga/?', GAsandbox),
+                               (r'/ga2/?', GAsandbox2),
                                (r'/.*', Error)
                               ],
                                 debug=True)
