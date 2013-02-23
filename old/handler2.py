@@ -3,7 +3,10 @@
 import httplib2, uritemplate, gflags, gflags_validators
 from apiclient.discovery import build
 from oauth2client.appengine import OAuth2Decorator
-
+from oauth2client.client import flow_from_clientsecrets
+from oauth2client.client import OAuth2WebServerFlow
+from oauth2client.tools import run
+from hello_analytics_api_v3_auth import *
 ## standard python library imports
 import os, webapp2, jinja2, logging, json, pprint
 from datetime import datetime
@@ -20,11 +23,27 @@ path = os.path.dirname(__file__)
 templates = os.path.join(path, 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(templates), autoescape=True) 
 
+client_id = '1048565728869.apps.googleusercontent.com'
+client_secret = '7UniAw2jEuomwSpRpRI5kbzz'
+scope = 'https://www.googleapis.com/auth/analytics.readonly'
+redirect_uri = 'http://modea-dash.appspot.com/oauth2callback'
+
+calendar_decorator = OAuth2Decorator(
+  client_id='1048565728869.apps.googleusercontent.com',
+  client_secret='7UniAw2jEuomwSpRpRI5kbzz',
+  scope='https://www.googleapis.com/auth/calendar')
+
 ga_decorator = OAuth2Decorator(
 	client_id='1048565728869.apps.googleusercontent.com',
 	client_secret='7UniAw2jEuomwSpRpRI5kbzz',
 	scope='https://www.googleapis.com/auth/analytics.readonly')
 
+flow = OAuth2WebServerFlow(client_id=client_id,
+                           client_secret=client_secret,
+                           scope=scope,
+                           redirect_uri=redirect_uri)
+
+calendar_service = build('calendar', 'v3')
 ga_service = build('analytics', 'v3')
 
 class Handler(webapp2.RequestHandler):
@@ -75,68 +94,61 @@ class Handler(webapp2.RequestHandler):
     else:
       self.format = 'html'
 
-class Home(webapp2.RequestHandler):
+class Home(webapp2.RequestHandler): ## Handler for Home page requests
 
+  @calendar_decorator.oauth_required
   def get(self):
-    self.write('the home page')
+    http = calendar_decorator.http()
+    request = calendar_service.events().list(calendarId='primary')	
+    response = request.execute(http=http)
+    logging.warning(response)
     ## self.render('home.html', **self.params)
 
-class GAsandbox(webapp2.RequestHandler): 
+class CALsandbox(webapp2.RequestHandler): ## Handler for Home page requests
 
-  @ga_decorator.oauth_aware
-  def get_accounts(self, accountList, http):
-    accounts = ga_service.management().accounts().list()
-    response = accounts.execute(http=http)
-    for item in response.get('items'):
-      accountList.append(item.get('id'))
-    
-  @ga_decorator.oauth_aware
-  def get_properties(propertyList, accountId, http):
-    properties = ga_service.management().webproperties().list(accountId=accountList[0])
-    response = properties.execute(http=http)
-    for item in response.get('items'):
-      propertyList.append(item.get('id'))
-    
-  @ga_decorator.oauth_aware
-  def get_profiles(profileList, accountId, propertyId, http):
-    profiles = ga_service.management().profiles().list(
-               accountId=accountList[0],
-               webPropertyId=propertyList[0])
-    response = profiles.execute(http=http)
-    for item in response.get('items'):
-      profileList.append(item.get('id'))
-    
-  @ga_decorator.oauth_aware
-  def get_results(profileId):
-    results = service.data().ga().get(
-      ids='ga:' + profileId,
-      start_date='2012-06-01',
-      end_date='2012-06-30',
-      metrics='ga:visits')
-    response = results.execute()
-    return response
-  
+  @calendar_decorator.oauth_aware
+  def get(self):
+    if calendar_decorator.has_credentials():
+      http = calendar_decorator.http()
+      request = calendar_service.events().list(calendarId='primary')	
+      response = request.execute(http=http)
+      logging.warning(response)
+    else:
+      url = decorator.authorize_url()
+      self.redirect(url)
+
+class GAsandbox(webapp2.RequestHandler): ## Handler for Home page requests
+
   @ga_decorator.oauth_aware
   def get(self):
     if ga_decorator.has_credentials():
       http = ga_decorator.http()
       try:
-        accountList = list()
-        self.get_accounts(accountList, http)
-        accountId = accountList[0]
-        logging.warning(accountId)
-#        propertyList = list()
-#        get_properties(propertyList, accountId, http)
-#        propertyId = propertyList[0]
-#        profileList = list()
-#        get_profiles(profileList, accountId, propertyId, http):
-#        profileId = profileList[0]
-#        results = get_results(profileId)
+        account = ga_service.management().accounts().list()
+        response = account.execute(http=http)
+        logging.warning(response)
       except TypeError, error:
         print 'There was a type error: %s' % error
     else:
-      url = ga_decorator.authorize_url()
+      url = decorator.authorize_url()
       self.redirect(url)
+
+class GAsandbox2(webapp2.RequestHandler): ## Handler for Home page requests
+
+  def get(self):
+    code = self.request.get('code')
+    if code:
+      credentials = flow.step2_exchange(code)
+      http = httplib2.Http()
+      http = credentials.authorize(http)
+      ga_service = build('analytics', 'v3', http=http)
+      accounts = ga_service.management().accounts().list().execute()
+      firstAccountId = accounts.get('items')[0].get('id')
+      logging.warning(firstAccountId)
+    else:
+      logging.warning(flow)
+      auth_uri = flow.step1_get_authorize_url()
+      self.redirect(auth_uri)
 
 class Logout(Handler): ## Handler for Home page requests
 
@@ -153,9 +165,11 @@ class Error(Handler): ## Default handler for 404 errors
     self.write("There's been an error... Woops")
 
 app = webapp2.WSGIApplication([(r'/?', Home),
-                               (ga_decorator.callback_path, ga_decorator.callback_handler()),
-                               (r'/ga/?', GAsandbox),
                                (r'/logout/?', Logout),
+                               (r'/cal/?', CALsandbox),
+                               (r'/ga/?', GAsandbox),
+                               (r'/ga2/?', GAsandbox2),
+                               (r'/oauth2callback/?', GAsandbox2),
                                (r'/.*', Error)
                               ],
                                 debug=True)
