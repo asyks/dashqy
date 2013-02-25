@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if accountList %}
+<form name="accounts-table" method="post" action="/accountselect">
+	<table>
+	{% for account in accountList %}
+		<tr>
+			<td>
+				<input type="radio" name="accountId" value={{ account.id }}>
+			</td>
+			<td>
+				{{ account.name }}
+			</td>
+		</tr>
+	{% endfor %}
+	</table>
+	{% if accountList %}
+		<div>
+				<input type="submit" value="Select Account">
+		</div>
+	{% endif %}
+</form>
+<br>
+{% endif %}
+
+{% if propertyList %}
+<form name="properties-table" method="post" action="/propertyselect">
+	<div>
+			<input type="text" name="accountId" value={{ accountId }}>
+	</div>
+	<table>
+	{% for property in propertyList %}
+		<tr>
+			<td>
+				<input type="radio" name="propertyId" value={{ property.id }}>
+			</td>
+			<td>
+				{{ property.name }}
+			</td>
+		</tr>
+	{% endfor %}
+	</table>
+	<div>
+			<input type="submit" value="Select Property">
+	</div>
+</form>
+<br>
+{% endif %}
+
+{% if profileList %}
+<form name="profiles-table" method="post" action="/profileselect">
+	<div>
+			<input type="text" name="accountId" value={{ accountId }}>
+	</div>
+	<div>
+			<input type="text" name="propertyId" value={{ propertyId }}>
+	</div>
+	<table>
+	{% for profile in profileList %}
+		<tr>
+			<td>
+				<input type="radio" name="profileId" value={{ profile.id }}>
+			</td>
+			<td>
+				{{ profile.name }}
+			</td>
+		</tr>
+	{% endfor %}
+	</table>
+	<div>
+			<input type="submit" value="Select Property">
+	</div>
+</form>
+<br>
+{% endif %}
+
+{% if profileId %}
+<form name="metrics-table" method="post" action"/metricselect">
+	<div>
+		<input type="text" name="profileId" value={{ profileId }}>
+	</div>
+	<div>
+		<select name="dateRange">
+			<option value=1>Last Week</option>
+			<option value=2>Last Month</option>
+			<option value=3>Last 3 Months</option>
+		</select>
+	</div>
+	<div>
+		<input type="checkbox" name="metrics" value="Visits">
+			Visits
+		</input>
+		<input type="checkbox" name="metrics" value="Visitors">
+			Visitors
+		</input>
+		<input type="checkbox" name="metrics" value="Bounces">
+			Bounces
+		</input>
+		<input type="checkbox" name="metrics" value="Bounce Rate">
+			Bounce Rate
+		</input>
+	</div>
+	<div>
+			<input type="submit" value="Select Property">
+	</div>
+</form>
+{% endif %}
+
+{% endblock %}

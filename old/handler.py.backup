@@ -12,10 +12,9 @@ from datetime import datetime
 from google.appengine.api import memcache
 from google.appengine.api import users
 
-## dashboard class/object imports
+## pulse class/object imports
 ## from utility import *
 ## from datamodel import *
-from ga_api_classes import *
 
 path = os.path.dirname(__file__)
 templates = os.path.join(path, 'templates')
@@ -26,7 +25,7 @@ ga_decorator = OAuth2Decorator(
 	client_secret='7UniAw2jEuomwSpRpRI5kbzz',
 	scope='https://www.googleapis.com/auth/analytics.readonly')
 
-gamgmt = GaMgmt(ga_decorator)
+ga_service = build('analytics', 'v3')
 
 class Handler(webapp2.RequestHandler):
 
@@ -82,105 +81,64 @@ class Handler(webapp2.RequestHandler):
     else:
       self.format = 'html'
 
-class Home(webapp2.RequestHandler):
+class Home(Handler):
 
   def get(self):
     self.write('the home page')
     ## self.render('home.html', **self.params)
 
-class GaSandbox(Handler): 
+class GAsandbox(Handler): 
 
-  @ga_decorator.oauth_aware
-  def render_accounts(self):
-    try:
-      accountList = list()
-      gamgmt.get_accounts(accountList)
-      self.params['accountList'] = accountList 
-      self.render('ga1.html', **self.params)
-    except TypeError, error:
-      print 'There was a type error: %s' % error
-
-  @ga_decorator.oauth_aware
-  def render_properties(self, accountId):
-    try:
-      propertyList = list()
-      gamgmt.get_properties(propertyList, accountId)
-      self.params['accountId'] = accountId
-      self.params['propertyList'] = propertyList
-      self.render('ga1.html', **self.params)
-    except TypeError, error:
-      print 'There was a type error: %s' % error
-
-  @ga_decorator.oauth_aware
-  def render_profiles(self, accountId, propertyId):
-    try:
-      profileList = list()
-      gamgmt.get_profiles(profileList, accountId, propertyId)
-      self.params['accountId'] = accountId
-      self.params['propertyId'] = propertyId
-      self.params['profileList'] = profileList
-      self.render('ga1.html', **self.params)
-    except TypeError, error:
-      print 'There was a type error: %s' % error
-
+  def get_accounts(self, accountList, http):
+    accounts = ga_service.management().accounts().list()
+    response = accounts.execute(http=http)
+    for item in response.get('items'):
+      accountList.append(item.get('id'))
+    
+  def get_properties(propertyList, accountId, http):
+    properties = ga_service.management().webproperties().list(accountId=accountList[0])
+    response = properties.execute(http=http)
+    for item in response.get('items'):
+      propertyList.append(item.get('id'))
+    
+  def get_profiles(profileList, accountId, propertyId, http):
+    profiles = ga_service.management().profiles().list(
+               accountId=accountList[0],
+               webPropertyId=propertyList[0])
+    response = profiles.execute(http=http)
+    for item in response.get('items'):
+      profileList.append(item.get('id'))
+    
+  def get_results(profileId):
+    results = service.data().ga().get(
+      ids='ga:' + profileId,
+      start_date='2012-06-01',
+      end_date='2012-06-30',
+      metrics='ga:visits')
+    response = results.execute()
+    return response
+  
   @ga_decorator.oauth_aware
   def get(self):
-    accountId = self.request.get('accountId')
-    propertyId = self.request.get('propertyId')
-    path = self.request.path
-    logging.warning(path)
     if ga_decorator.has_credentials():
-      if accountId:
-        if propertyId:
-          self.render_profiles(accountId, propertyId)
-        else:
-          self.render_properties(accountId)
-      else:
-        self.render_accounts()
+      http = ga_decorator.http()
+      try:
+        accountList = list()
+        self.get_accounts(accountList, http)
+        accountId = accountList[0]
+        logging.warning(accountId)
+#        propertyList = list()
+#        get_properties(propertyList, accountId, http)
+#        propertyId = propertyList[0]
+#        profileList = list()
+#        get_profiles(profileList, accountId, propertyId, http):
+#        profileId = profileList[0]
+#        results = get_results(profileId)
+      except TypeError, error:
+        print 'There was a type error: %s' % error
     else:
       url = ga_decorator.authorize_url()
       self.redirect(url)
-
-class AccountSelect(Handler): 
-
-  @ga_decorator.oauth_aware
-  def post(self):
-    path = '/ga' 
-    accountId = self.request.get('accountId')
-    redirectUrl = path + '?accountId=' + accountId
-    self.redirect(redirectUrl)
-
-class PropertySelect(Handler): 
-
-  @ga_decorator.oauth_aware
-  def post(self):
-    path = '/ga'
-    accountId = self.request.get('accountId')
-    propertyId = self.request.get('propertyId')
-    redirectUrl = path + '?propertyId=' + propertyId \
-                  + "&accountId=" +  accountId
-    self.redirect(redirectUrl)
-
-class ProfileSelect(Handler): 
-
-  @ga_decorator.oauth_aware
-  def post(self):
-    path = '/gametrics'
-    accountId = self.request.get('accountId')
-    propertyId = self.request.get('propertyId')
-    profileId = self.request.get('profileId')
-    redirectUrl = path + '?propertyId=' + propertyId \
-                  + "&accountId=" +  accountId \
-                  + "&profileId=" +  profileId
-    self.redirect(redirectUrl)
-
-class GaMetrics(Handler):
-
-  @ga_decorator.oauth_aware
-  def get(self):
-    profileId = self.request.get('profileId')
-    self.params['profileId'] = profileId
-    self.render('ga1.html', **self.params)
 
 class Logout(Handler): ## Handler for Home page requests
 
@@ -198,11 +156,7 @@ class Error(Handler): ## Default handler for 404 errors
 
 app = webapp2.WSGIApplication([(r'/?', Home),
                                (ga_decorator.callback_path, ga_decorator.callback_handler()),
-                               (r'/ga/?', GaSandbox),
-                               (r'/accountselect/?', AccountSelect),
-                               (r'/propertyselect/?', PropertySelect),
-                               (r'/profileselect/?', ProfileSelect),
-                               (r'/gametrics/?', GaMetrics),
+                               (r'/ga/?', GAsandbox),
                                (r'/logout/?', Logout),
                                (r'/.*', Error)
                               ],
