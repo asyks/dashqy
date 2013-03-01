@@ -116,10 +116,14 @@ class GaSandbox(Handler):
   def render_profiles(self, accountId, propertyId):
     try:
       profileList = list()
+      segmentList = list()
       gamgmt.get_profiles(profileList, accountId, propertyId)
+      gamgmt.get_segments(segmentList)
       self.params['accountId'] = accountId
       self.params['propertyId'] = propertyId
       self.params['profileList'] = profileList
+      self.params['segmentList'] = segmentList
+      logging.warning(segmentList)
       self.render('ga1.html', **self.params)
     except TypeError, error:
       print 'There was a type error: %s' % error
@@ -129,7 +133,6 @@ class GaSandbox(Handler):
     accountId = self.request.get('accountId')
     propertyId = self.request.get('propertyId')
     path = self.request.path
-    logging.warning(path)
     if ga_decorator.has_credentials():
       if accountId:
         if propertyId:
@@ -175,6 +178,19 @@ class ProfileSelect(Handler):
                   + "&profileId=" +  profileId
     self.redirect(redirectUrl)
 
+class SegmentSelect(Handler): 
+
+  @ga_decorator.oauth_aware
+  def post(self):
+    path = '/gametrics'
+    accountId = self.request.get('accountId')
+    propertyId = self.request.get('propertyId')
+    profileId = self.request.get('profileId')
+    redirectUrl = path + '?propertyId=' + propertyId \
+                  + "&accountId=" +  accountId \
+                  + "&profileId=" +  profileId
+    self.redirect(redirectUrl)
+
 class GaMetrics(Handler):
 
   @ga_decorator.oauth_aware
@@ -187,6 +203,7 @@ class GaMetrics(Handler):
     profileId = self.request.get('profileId')
     metrics = self.request.get_all('metrics')
     dateRange = int(self.request.get('dateRange'))
+    segmentId = self.request.get_all('segmentId') or None
 
     metricLabel = 'ga:'
     metricLabel += (',' + metricLabel).join(metrics)
@@ -210,7 +227,8 @@ class GaMetrics(Handler):
       results = gamgmt.get_results(profileId, 
                                    startDate, 
                                    endDate, 
-                                   metricLabel)
+                                   metricLabel,
+                                   segmentId)
       self.params['results'] = results.get('totalsForAllResults')
       self.params['profileId'] = results.get('profileInfo') \
                                        .get('profileId')

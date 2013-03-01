@@ -47,15 +47,15 @@ class GaMgmt(object):
     http = self.decorator.http()
     response = segments.execute(http=http)
     for item in response.get('items'):
-      profile = dict()
-      profile['id'] = item.get('id')
-      profile['name'] = item.get('name')
-      segmentList.append(segments)
+      segment = dict()
+      segment['id'] = item.get('id')
+      segment['name'] = item.get('name')
+      segmentList.append(segment)
     
-  def get_results(self, profileId, startDate, endDate, metrics):
+  def get_results(self,profileId,startDate,endDate,metrics,segmentId):
     results = self.service.data().ga().get(
       ids='ga:' + profileId,
-      start_date= startDate,
+      start_date=startDate,
       end_date=endDate,
       metrics=metrics)
     http = self.decorator.http()

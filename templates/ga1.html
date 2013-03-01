@@ -77,7 +77,7 @@
 {% endif %}
 
 {% if profileId %}
-<form name="metrics-table" method="post" action"/metricselect">
+<form name="metrics-table" method="post" action="/gametrics">
 	<div>
 		<input type="text" name="profileId" value={{ profileId }}>
 	</div>
@@ -102,6 +102,23 @@
 			Bounce Rate
 		</input>
 	</div>
+	<div>
+		Advanced Segements:
+	</div>
+	{% if segmentList %}
+		<table>
+		{% for segment in segmentList %}
+			<tr>
+				<td>
+					<input type="radio" name="segmentId" value={{ segment.id }}>
+				</td>
+				<td>
+					{{ segment.name }}
+				</td>
+			</tr>
+		{% endfor %}
+		</table>
+	{% endif %}
 	<div>
 			<input type="submit" value="Select Metrics">
 	</div>
