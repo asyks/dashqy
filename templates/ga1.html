@@ -70,7 +70,7 @@
 	{% endfor %}
 	</table>
 	<div>
-			<input type="submit" value="Select Property">
+			<input type="submit" value="Select Profile">
 	</div>
 </form>
 <br>
@@ -84,26 +84,26 @@
 	<div>
 		<select name="dateRange">
 			<option value=1>Last Week</option>
-			<option value=2>Last Month</option>
-			<option value=3>Last 3 Months</option>
+			<option value=2>Last 30 Days</option>
+			<option value=3>Last 90 Days</option>
 		</select>
 	</div>
 	<div>
-		<input type="checkbox" name="metrics" value="Visits">
+		<input type="checkbox" name="metrics" value="visits">
 			Visits
 		</input>
-		<input type="checkbox" name="metrics" value="Visitors">
+		<input type="checkbox" name="metrics" value="visitors">
 			Visitors
 		</input>
-		<input type="checkbox" name="metrics" value="Bounces">
+		<input type="checkbox" name="metrics" value="bounces">
 			Bounces
 		</input>
-		<input type="checkbox" name="metrics" value="Bounce Rate">
+		<input type="checkbox" name="metrics" value="visitBounceRate">
 			Bounce Rate
 		</input>
 	</div>
 	<div>
-			<input type="submit" value="Select Property">
+			<input type="submit" value="Select Metrics">
 	</div>
 </form>
 {% endif %}

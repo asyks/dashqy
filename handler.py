@@ -6,7 +6,8 @@ from oauth2client.appengine import OAuth2Decorator
 
 ## standard python library imports
 import os, webapp2, jinja2, logging, json, pprint
-from datetime import datetime
+from datetime import date
+from datetime  import timedelta
 
 ## app engine library imports
 from google.appengine.api import memcache
@@ -181,6 +182,43 @@ class GaMetrics(Handler):
     profileId = self.request.get('profileId')
     self.params['profileId'] = profileId
     self.render('ga1.html', **self.params)
+
+  def post(self):
+    profileId = self.request.get('profileId')
+    metrics = self.request.get_all('metrics')
+    dateRange = int(self.request.get('dateRange'))
+
+    metricLabel = 'ga:'
+    metricLabel += (',' + metricLabel).join(metrics)
+
+    startDate = endDate = date.today()
+    if dateRange == 1:
+      startDate -= timedelta(days=8)
+      endDate -= timedelta(days=1)
+    elif dateRange == 2:
+      startDate -= timedelta(days=31)
+      endDate -= timedelta(days=1)
+    elif dateRange == 3:
+      startDate -= timedelta(days=1)
+      endDate -= timedelta(days=91)
+    startDate = startDate.strftime("%Y-%m-%d")
+    endDate = endDate.strftime("%Y-%m-%d")
+    logging.warning(startDate)
+    logging.warning(endDate)
+
+    try:
+      results = gamgmt.get_results(profileId, 
+                                   startDate, 
+                                   endDate, 
+                                   metricLabel)
+      self.params['results'] = results.get('totalsForAllResults')
+      self.params['profileId'] = results.get('profileInfo') \
+                                       .get('profileId')
+      self.params['profileName'] = results.get('profileInfo') \
+                                          .get('profileName')
+      self.render('ga2.html', **self.params)
+    except TypeError, error:
+      print 'There was a type error: %s' % error
 
 class Logout(Handler): ## Handler for Home page requests
 
