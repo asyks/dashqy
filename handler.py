@@ -22,12 +22,12 @@ path = os.path.dirname(__file__)
 templates = os.path.join(path, 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(templates), autoescape=True) 
 
-ga_decorator = OAuth2Decorator(
+decorator = OAuth2Decorator(
 	client_id='1048565728869.apps.googleusercontent.com',
 	client_secret='7UniAw2jEuomwSpRpRI5kbzz',
-	scope='https://www.googleapis.com/auth/analytics.readonly')
+	scope='https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/dfareporting')
 
-gamgmt = GaMgmt(ga_decorator)
+gamgmt = GaMgmt(decorator)
 
 class Handler(webapp2.RequestHandler):
 
@@ -83,7 +83,7 @@ class Handler(webapp2.RequestHandler):
     else:
       self.format = 'html'
 
-class Home(webapp2.RequestHandler):
+class Home(Handler):
 
   def get(self):
     self.write('the home page')
@@ -91,7 +91,7 @@ class Home(webapp2.RequestHandler):
 
 class GaSandbox(Handler): 
 
-  @ga_decorator.oauth_aware
+  @decorator.oauth_aware
   def render_accounts(self):
     try:
       accountList = list()
@@ -101,7 +101,7 @@ class GaSandbox(Handler):
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  @ga_decorator.oauth_aware
+  @decorator.oauth_aware
   def render_properties(self, accountId):
     try:
       propertyList = list()
@@ -112,7 +112,7 @@ class GaSandbox(Handler):
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  @ga_decorator.oauth_aware
+  @decorator.oauth_aware
   def render_profiles(self, accountId, propertyId):
     try:
       profileList = list()
@@ -128,12 +128,12 @@ class GaSandbox(Handler):
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  @ga_decorator.oauth_aware
+  @decorator.oauth_aware
   def get(self):
     accountId = self.request.get('accountId')
     propertyId = self.request.get('propertyId')
     path = self.request.path
-    if ga_decorator.has_credentials():
+    if decorator.has_credentials():
       if accountId:
         if propertyId:
           self.render_profiles(accountId, propertyId)
@@ -142,12 +142,12 @@ class GaSandbox(Handler):
       else:
         self.render_accounts()
     else:
-      url = ga_decorator.authorize_url()
+      url = decorator.authorize_url()
       self.redirect(url)
 
 class AccountSelect(Handler): 
 
-  @ga_decorator.oauth_aware
+  @decorator.oauth_aware
   def post(self):
     path = '/ga' 
     accountId = self.request.get('accountId')
@@ -156,7 +156,7 @@ class AccountSelect(Handler):
 
 class PropertySelect(Handler): 
 
-  @ga_decorator.oauth_aware
+  @decorator.oauth_aware
   def post(self):
     path = '/ga'
     accountId = self.request.get('accountId')
@@ -167,7 +167,7 @@ class PropertySelect(Handler):
 
 class ProfileSelect(Handler): 
 
-  @ga_decorator.oauth_aware
+  @decorator.oauth_aware
   def post(self):
     path = '/gametrics'
     accountId = self.request.get('accountId')
@@ -180,7 +180,7 @@ class ProfileSelect(Handler):
 
 class SegmentSelect(Handler): 
 
-  @ga_decorator.oauth_aware
+  @decorator.oauth_aware
   def post(self):
     path = '/gametrics'
     accountId = self.request.get('accountId')
@@ -193,7 +193,7 @@ class SegmentSelect(Handler):
 
 class GaMetrics(Handler):
 
-  @ga_decorator.oauth_aware
+  @decorator.oauth_aware
   def get(self):
     profileId = self.request.get('profileId')
     self.params['profileId'] = profileId
@@ -203,7 +203,10 @@ class GaMetrics(Handler):
     profileId = self.request.get('profileId')
     metrics = self.request.get_all('metrics')
     dateRange = int(self.request.get('dateRange'))
-    segmentId = self.request.get_all('segmentId') or None
+    segmentId = self.request.get('segmentId') or None
+    logging.warning(profileId)
+    logging.warning(segmentId)
+    logging.warning(metrics)
 
     metricLabel = 'ga:'
     metricLabel += (',' + metricLabel).join(metrics)
@@ -220,8 +223,6 @@ class GaMetrics(Handler):
       endDate -= timedelta(days=91)
     startDate = startDate.strftime("%Y-%m-%d")
     endDate = endDate.strftime("%Y-%m-%d")
-    logging.warning(startDate)
-    logging.warning(endDate)
 
     try:
       results = gamgmt.get_results(profileId, 
@@ -238,6 +239,43 @@ class GaMetrics(Handler):
     except TypeError, error:
       print 'There was a type error: %s' % error
 
+class DashOne(Handler):
+
+  @decorator.oauth_aware
+  def get(self):
+    if decorator.has_credentials():
+      profileId = str(57024164)
+      segmentId = str(1947454746)
+      metrics = ['visitors',
+                 'visits',
+                 'bounces',
+                 'visitBounceRate',
+                 'timeOnSite']
+      metricLabel = 'ga:'
+      metricLabel += (',' + metricLabel).join(metrics)
+      startDate = endDate = date.today()
+      startDate -= timedelta(days=15)
+      endDate -= timedelta(days=1)
+      startDate = startDate.strftime("%Y-%m-%d")
+      endDate = endDate.strftime("%Y-%m-%d")
+      try:
+        results = gamgmt.get_results(profileId, 
+                                   startDate, 
+                                   endDate, 
+                                   metricLabel,
+                                   segmentId)
+        self.params['results'] = results.get('totalsForAllResults')
+        self.params['profileId'] = results.get('profileInfo') \
+                                 .get('profileId')
+        self.params['profileName'] = results.get('profileInfo') \
+                                   .get('profileName')
+        self.render('ga2.html', **self.params)
+      except TypeError, error:
+        print 'There was a type error: %s' % error
+    else:
+      url = decorator.authorize_url()
+      self.redirect(url)
+
 class Logout(Handler): ## Handler for Home page requests
 
   def get(self):
@@ -253,12 +291,13 @@ class Error(Handler): ## Default handler for 404 errors
     self.write("There's been an error... Woops")
 
 app = webapp2.WSGIApplication([(r'/?', Home),
-                               (ga_decorator.callback_path, ga_decorator.callback_handler()),
+                               (decorator.callback_path, decorator.callback_handler()),
                                (r'/ga/?', GaSandbox),
                                (r'/accountselect/?', AccountSelect),
                                (r'/propertyselect/?', PropertySelect),
                                (r'/profileselect/?', ProfileSelect),
                                (r'/gametrics/?', GaMetrics),
+                               (r'/dash1/?', DashOne),
                                (r'/logout/?', Logout),
                                (r'/.*', Error)
                               ],
