@@ -25,9 +25,11 @@ jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(templates), auto
 decorator = OAuth2Decorator(
 	client_id='1048565728869.apps.googleusercontent.com',
 	client_secret='7UniAw2jEuomwSpRpRI5kbzz',
-	scope='https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/dfareporting')
+  scope=['https://www.googleapis.com/auth/analytics.readonly',
+         'https://www.googleapis.com/auth/dfareporting'])
 
 gamgmt = GaMgmt(decorator)
+dubClick = DoubleClick(decorator)
 
 class Handler(webapp2.RequestHandler):
 
@@ -276,6 +278,21 @@ class DashOne(Handler):
       url = decorator.authorize_url()
       self.redirect(url)
 
+class DcSandbox(Handler): 
+
+  @decorator.oauth_aware
+  def get(self):
+    if decorator.has_credentials():
+      try:
+        profileList = list()
+        dubClick.get_profiles(profileList) 
+        logging.warning(profileList)
+      except TypeError, error:
+        print 'There was a type error: %s' % error
+    else:
+      url = decorator.authorize_url()
+      self.redirect(url)
+
 class Logout(Handler): ## Handler for Home page requests
 
   def get(self):
@@ -293,6 +310,7 @@ class Error(Handler): ## Default handler for 404 errors
 app = webapp2.WSGIApplication([(r'/?', Home),
                                (decorator.callback_path, decorator.callback_handler()),
                                (r'/ga/?', GaSandbox),
+                               (r'/dc/?', DcSandbox),
                                (r'/accountselect/?', AccountSelect),
                                (r'/propertyselect/?', PropertySelect),
                                (r'/profileselect/?', ProfileSelect),

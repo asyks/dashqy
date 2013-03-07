@@ -61,3 +61,19 @@ class GaMgmt(object):
     http = self.decorator.http()
     response = results.execute(http=http)
     return response
+
+class DoubleClick(object): 
+
+  def __init__(self, decorator):
+    self.service = build('dfareporting', 'v1.1')
+    self.decorator = decorator
+
+  def get_profiles(self, profileList):
+    profiles = self.service.userProfiles().list()
+#    http = self.decorator.http()
+    response = profiles.execute()
+    for item in response.get('items'):
+      profile = dict()
+      profile['profileId'] = item.get('profileId')
+      account['accountId'] = item.get('accountId')
+      profileList.append(profile)
