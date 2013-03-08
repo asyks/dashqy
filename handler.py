@@ -281,14 +281,20 @@ class DashOne(Handler):
 class DcSandbox(Handler): 
 
   @decorator.oauth_aware
+  def render_profiles(self):
+    try:
+      profileList = list()
+      dubClick.get_profiles(profileList) 
+      self.params['profileList'] = profileList 
+      logging.warning(self.params['profileList'])
+      self.render('dc1.html', **self.params)
+    except TypeError, error:
+      print 'There was a type error: %s' % error
+
+  @decorator.oauth_aware
   def get(self):
     if decorator.has_credentials():
-      try:
-        profileList = list()
-        dubClick.get_profiles(profileList) 
-        logging.warning(profileList)
-      except TypeError, error:
-        print 'There was a type error: %s' % error
+      self.render_profiles()
     else:
       url = decorator.authorize_url()
       self.redirect(url)

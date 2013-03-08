@@ -70,10 +70,10 @@ class DoubleClick(object):
 
   def get_profiles(self, profileList):
     profiles = self.service.userProfiles().list()
-#    http = self.decorator.http()
-    response = profiles.execute()
+    http = self.decorator.http()
+    response = profiles.execute(http=http)
     for item in response.get('items'):
       profile = dict()
       profile['profileId'] = item.get('profileId')
-      account['accountId'] = item.get('accountId')
+      profile['accountId'] = item.get('accountId')
       profileList.append(profile)
