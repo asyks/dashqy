@@ -281,10 +281,13 @@ class DashOne(Handler):
 
 class DcSandbox(Handler): 
 
+  @decorator.oauth_aware
   def render_page(self, profileId=None, metricsList=None):
     if decorator.has_credentials():
-      if profileId and metricsList:
+      if metricsList:
         self.fetch_metrics(profileId, metricsList)
+      elif profileId:
+        self.fetch_reportList(profileId)
       else:
         self.fetch_profiles()
       self.render('dc1.html', **self.params)
@@ -303,6 +306,15 @@ class DcSandbox(Handler):
       print 'There was a type error: %s' % error
 
   @decorator.oauth_aware
+  def fetch_reportList(self, profileId):
+    try:
+      reportList = list()
+      dubClick.get_reportList(profileId, reportList)
+      logging.warning(reportList) 
+    except TypeError, error:
+      print 'There was a type error: %s' % error
+
+  @decorator.oauth_aware
   def fetch_metrics(self, profileId, metricsList):
     try:
       metricList = list()
@@ -311,15 +323,13 @@ class DcSandbox(Handler):
       endDate -= timedelta(days=1)
       startDate = startDate.strftime("%Y-%m-%d")
       endDate = endDate.strftime("%Y-%m-%d")
-      response = dubClick.get_metrics(profileId=profileId,
+      dubClick.get_metrics(profileId=profileId,
                            startDate=startDate,
                            endDate=endDate,
                            dimensionName=metricsList[0]) 
-      logging.warning(response)
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  @decorator.oauth_aware
   def get(self):
     self.render_page()
 
