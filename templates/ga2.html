@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div>
+	<a href="/ga">>>>Go Back</a>
+</div>
+
+	<div>
+		<input type="text" name="profileId" value={{ profileId }}>
+	</div>
+	<div>
+		<input type="text" name="profileId" value={{ profileName }}>
+	</div>
+	<table name="metric-table">
+		{% for key in results %}
+		<tr>
+			<td>	
+				{{ key }}	:
+			</td>
+			<td>	
+				{{ results[key] }}	
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+
+{% endblock %}

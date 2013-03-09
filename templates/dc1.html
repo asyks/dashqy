@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if profileList %}
+<form name="profiles-table" method="post" action="/dc">
+	<div>Profiles:</div>
+	<table>
+	{% for profile in profileList %}
+		<tr>
+			<td>
+				<input type="radio" name="profileId" value={{ profile.profileId }}>
+			</td>
+			<td>
+				{{ profile.profileId }}
+			</td>
+		</tr>
+	{% endfor %}
+	</table>
+	<div>Metrics:</div>
+  <table>
+  {% for metric in metrics %}
+    <tr>
+			<td>
+				<input type="checkbox" name="metric-select" value={{ metric }}>
+      </td>
+      <td>
+        <label>{{ metric }}</label>
+			</td>
+    </tr>
+  {% endfor %}
+	</table>
+	<div>
+			<input type="submit" value="Select Profile">
+	</div>
+</form>
+<br>
+{% endif %}
+
+{% endblock %}

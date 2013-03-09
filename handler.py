@@ -17,6 +17,7 @@ from google.appengine.api import users
 ## from utility import *
 ## from datamodel import *
 from ga_api_classes import *
+from metrics_objects import *
 
 path = os.path.dirname(__file__)
 templates = os.path.join(path, 'templates')
@@ -280,24 +281,68 @@ class DashOne(Handler):
 
 class DcSandbox(Handler): 
 
+  def render_page(self, profileId=None, metricsList=None):
+    if decorator.has_credentials():
+      if profileId and metricsList:
+        self.fetch_metrics(profileId, metricsList)
+      else:
+        self.fetch_profiles()
+      self.render('dc1.html', **self.params)
+    else:
+      url = decorator.authorize_url()
+      self.redirect(url)
+
   @decorator.oauth_aware
-  def render_profiles(self):
+  def fetch_profiles(self):
     try:
       profileList = list()
       dubClick.get_profiles(profileList) 
       self.params['profileList'] = profileList 
-      logging.warning(self.params['profileList'])
-      self.render('dc1.html', **self.params)
+      self.params['metrics'] = dfaMetrics
+    except TypeError, error:
+      print 'There was a type error: %s' % error
+
+  @decorator.oauth_aware
+  def fetch_metrics(self, profileId, metricsList):
+    try:
+      metricList = list()
+      startDate = endDate = date.today()
+      startDate -= timedelta(days=15)
+      endDate -= timedelta(days=1)
+      startDate = startDate.strftime("%Y-%m-%d")
+      endDate = endDate.strftime("%Y-%m-%d")
+      response = dubClick.get_metrics(profileId=profileId,
+                           startDate=startDate,
+                           endDate=endDate,
+                           dimensionName=metricsList[0]) 
+      logging.warning(response)
     except TypeError, error:
       print 'There was a type error: %s' % error
 
   @decorator.oauth_aware
   def get(self):
-    if decorator.has_credentials():
-      self.render_profiles()
-    else:
-      url = decorator.authorize_url()
-      self.redirect(url)
+    self.render_page()
+
+  def post(self):
+    profileId = self.request.get('profileId')
+    metricsList = self.request.get_all('metric-select')
+    self.render_page(profileId, metricsList)
+
+class DcMetrics(Handler): 
+
+  @decorator.oauth_aware
+  def post(self):
+    path = '/dc' 
+    accountId = self.request.get('profileId')
+    redirectUrl = path + '?profileId=' + profileId
+    self.redirect(redirectUrl)
+
+  @decorator.oauth_aware
+  def render_metrics(self, profileId):
+    try:
+      return
+    except TypeError, error:
+      print 'There was a type error: %s' % error
 
 class Logout(Handler): ## Handler for Home page requests
 
@@ -314,7 +359,8 @@ class Error(Handler): ## Default handler for 404 errors
     self.write("There's been an error... Woops")
 
 app = webapp2.WSGIApplication([(r'/?', Home),
-                               (decorator.callback_path, decorator.callback_handler()),
+                               (decorator.callback_path, 
+                                decorator.callback_handler()),
                                (r'/ga/?', GaSandbox),
                                (r'/dc/?', DcSandbox),
                                (r'/accountselect/?', AccountSelect),

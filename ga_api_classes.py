@@ -77,3 +77,16 @@ class DoubleClick(object):
       profile['profileId'] = item.get('profileId')
       profile['accountId'] = item.get('accountId')
       profileList.append(profile)
+
+  def get_metrics(self, profileId, startDate, endDate, dimensionName): 
+    body = dict()
+    body['kind'] = 'dfareporting#dimensionValueRequest'
+    body['dimensionName'] = 'dfa:' + dimensionName
+    body['startDate'] = startDate
+    body['endDate'] = endDate
+    body['filters'] = list()
+    results = self.service.dimensionValues().query(profileId=profileId,
+                                                   body=body)
+    http = self.decorator.http()
+    response = results.execute(http=http)
+    return response
