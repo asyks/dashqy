@@ -76,8 +76,8 @@
 <br>
 {% endif %}
 
-{% if profileId %}
-<form name="metrics-table" method="post" action="/gametrics">
+{% if profileList %}
+<form name="metrics-table" method="post" action="/ga/metrics">
 	<div>
 		<input type="text" name="profileId" value={{ profileId }}>
 	</div>
@@ -105,7 +105,6 @@
 	<div>
 		Advanced Segements:
 	</div>
-	{% if segmentList %}
 		<table>
 		{% for segment in segmentList %}
 			<tr>
@@ -118,7 +117,6 @@
 			</tr>
 		{% endfor %}
 		</table>
-	{% endif %}
 	<div>
 			<input type="submit" value="Select Metrics">
 	</div>

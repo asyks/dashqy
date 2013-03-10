@@ -96,6 +96,7 @@ class GaManagement(Handler):
 
   @decorator.oauth_aware
   def render_page(self,accountId=None,propertyId=None,profileId=None):
+    self.params['profileId'] = profileId
     if decorator.has_credentials():
       if accountId:
         if propertyId:
@@ -104,6 +105,8 @@ class GaManagement(Handler):
           self.fetch_properties(accountId)
       else:
         self.fetch_accounts()
+      logging.warning(profileId)
+      logging.warning(self.params['profileId'])
       self.render('ga1.html', **self.params)
     else:
       url = decorator.authorize_url()
@@ -152,17 +155,16 @@ class GaMetrics(Handler):
   @decorator.oauth_aware
   def get(self):
     profileId = self.request.get('profileId')
+    logging.warning(profileId)
     self.params['profileId'] = profileId
     self.render('ga1.html', **self.params)
 
   def post(self):
     profileId = self.request.get('profileId')
+    logging.warning(profileId)
     metrics = self.request.get_all('metrics')
     dateRange = int(self.request.get('dateRange'))
     segmentId = self.request.get('segmentId') or None
-    logging.warning(profileId)
-    logging.warning(segmentId)
-    logging.warning(metrics)
 
     metricLabel = 'ga:'
     metricLabel += (',' + metricLabel).join(metrics)
@@ -332,11 +334,8 @@ app = webapp2.WSGIApplication([(r'/?', Home),
                                (decorator.callback_path, 
                                 decorator.callback_handler()),
                                (r'/ga/?', GaManagement),
+                               (r'/ga/metrics/?', GaMetrics),
                                (r'/dc/?', DcSandbox),
-                               (r'/accountselect/?', AccountSelect),
-                               (r'/propertyselect/?', PropertySelect),
-                               (r'/profileselect/?', ProfileSelect),
-                               (r'/gametrics/?', GaMetrics),
                                (r'/dash1/?', DashOne),
                                (r'/logout/?', Logout),
                                (r'/.*', Error)
