@@ -81,11 +81,6 @@ class Handler(webapp2.RequestHandler):
       login_url = users.create_login_url('/ga')
       self.redirect(login_url)
 
-    if self.request.url.endswith('.json'):
-      self.format = 'json'
-    else:
-      self.format = 'html'
-
 class Home(Handler):
 
   def get(self):
@@ -94,19 +89,27 @@ class Home(Handler):
 
 class GaManagement(Handler): 
 
+  def initialize(self, *a, **kw):
+    webapp2.RequestHandler.initialize(self, *a, **kw)
+    self.user = users.get_current_user()
+    if not self.user:
+      request_uri = self.request.uri
+      login_url = users.create_login_url('/ga')
+      self.redirect(login_url)
+    self.params['accountId'] = None
+    self.params['propertyId'] = None
+    self.params['profileId'] = None
+
   @decorator.oauth_aware
-  def render_page(self,accountId=None,propertyId=None,profileId=None):
-    self.params['profileId'] = profileId
+  def render_page(self):
     if decorator.has_credentials():
-      if accountId:
-        if propertyId:
-          self.fetch_profiles(accountId, propertyId)
+      if self.params['accountId']:
+        if self.params['propertyId']:
+          self.fetch_profiles()
         else:
-          self.fetch_properties(accountId)
+          self.fetch_properties()
       else:
         self.fetch_accounts()
-      logging.warning(profileId)
-      logging.warning(self.params['profileId'])
       self.render('ga1.html', **self.params)
     else:
       url = decorator.authorize_url()
@@ -120,22 +123,22 @@ class GaManagement(Handler):
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  def fetch_properties(self, accountId):
+  def fetch_properties(self):
     try:
       propertyList = list()
-      gamgmt.get_properties(propertyList, accountId)
-      self.params['accountId'] = accountId
+      gamgmt.get_properties(propertyList, self.params['accountId'])
       self.params['propertyList'] = propertyList
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  def fetch_profiles(self, accountId, propertyId):
+  def fetch_profiles(self):
     try:
       profileList = list()
       segmentList = list()
-      gamgmt.get_profiles(profileList, accountId, propertyId)
+      gamgmt.get_profiles(profileList, 
+                          self.params['accountId'], 
+                          self.params['propertyId'])
       gamgmt.get_segments(segmentList)
-      self.params['propertyId'] = propertyId
       self.params['profileList'] = profileList
       self.params['segmentList'] = segmentList
     except TypeError, error:
@@ -145,10 +148,10 @@ class GaManagement(Handler):
     self.render_page()
 
   def post(self):
-    accountId = self.request.get('accountId') or None
-    propertyId = self.request.get('propertyId') or None
-    profileId = self.request.get('profileId') or None
-    self.render_page(accountId, propertyId, profileId)
+    self.params['accountId'] = self.request.get('accountId') or None
+    self.params['propertyId'] = self.request.get('propertyId') or None
+    self.params['profileId'] = self.request.get('profileId') or None
+    self.render_page()
 
 class GaMetrics(Handler):
 
