@@ -3,7 +3,7 @@
 {% block content %}
 
 {% if accountList %}
-<form name="accounts-table" method="post" action="/accountselect">
+<form name="accounts-table" method="post" action="/ga">
 	<table>
 	{% for account in accountList %}
 		<tr>
@@ -26,7 +26,7 @@
 {% endif %}
 
 {% if propertyList %}
-<form name="properties-table" method="post" action="/propertyselect">
+<form name="properties-table" method="post" action="/ga">
 	<div>
 			<input type="text" name="accountId" value={{ accountId }}>
 	</div>
@@ -50,7 +50,7 @@
 {% endif %}
 
 {% if profileList %}
-<form name="profiles-table" method="post" action="/profileselect">
+<form name="profiles-table" method="post" action="/ga">
 	<div>
 			<input type="text" name="accountId" value={{ accountId }}>
 	</div>

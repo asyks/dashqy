@@ -92,107 +92,60 @@ class Home(Handler):
     self.write('the home page')
     ## self.render('home.html', **self.params)
 
-class GaSandbox(Handler): 
+class GaManagement(Handler): 
 
   @decorator.oauth_aware
-  def render_accounts(self):
+  def render_page(self,accountId=None,propertyId=None,profileId=None):
+    if decorator.has_credentials():
+      if accountId:
+        if propertyId:
+          self.fetch_profiles(accountId, propertyId)
+        else:
+          self.fetch_properties(accountId)
+      else:
+        self.fetch_accounts()
+      self.render('ga1.html', **self.params)
+    else:
+      url = decorator.authorize_url()
+      self.redirect(url)
+
+  def fetch_accounts(self):
     try:
       accountList = list()
       gamgmt.get_accounts(accountList)
       self.params['accountList'] = accountList 
-      self.render('ga1.html', **self.params)
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  @decorator.oauth_aware
-  def render_properties(self, accountId):
+  def fetch_properties(self, accountId):
     try:
       propertyList = list()
       gamgmt.get_properties(propertyList, accountId)
       self.params['accountId'] = accountId
       self.params['propertyList'] = propertyList
-      self.render('ga1.html', **self.params)
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  @decorator.oauth_aware
-  def render_profiles(self, accountId, propertyId):
+  def fetch_profiles(self, accountId, propertyId):
     try:
       profileList = list()
       segmentList = list()
       gamgmt.get_profiles(profileList, accountId, propertyId)
       gamgmt.get_segments(segmentList)
-      self.params['accountId'] = accountId
       self.params['propertyId'] = propertyId
       self.params['profileList'] = profileList
       self.params['segmentList'] = segmentList
-      logging.warning(segmentList)
-      self.render('ga1.html', **self.params)
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  @decorator.oauth_aware
   def get(self):
-    accountId = self.request.get('accountId')
-    propertyId = self.request.get('propertyId')
-    path = self.request.path
-    if decorator.has_credentials():
-      if accountId:
-        if propertyId:
-          self.render_profiles(accountId, propertyId)
-        else:
-          self.render_properties(accountId)
-      else:
-        self.render_accounts()
-    else:
-      url = decorator.authorize_url()
-      self.redirect(url)
+    self.render_page()
 
-class AccountSelect(Handler): 
-
-  @decorator.oauth_aware
   def post(self):
-    path = '/ga' 
-    accountId = self.request.get('accountId')
-    redirectUrl = path + '?accountId=' + accountId
-    self.redirect(redirectUrl)
-
-class PropertySelect(Handler): 
-
-  @decorator.oauth_aware
-  def post(self):
-    path = '/ga'
-    accountId = self.request.get('accountId')
-    propertyId = self.request.get('propertyId')
-    redirectUrl = path + '?propertyId=' + propertyId \
-                  + "&accountId=" +  accountId
-    self.redirect(redirectUrl)
-
-class ProfileSelect(Handler): 
-
-  @decorator.oauth_aware
-  def post(self):
-    path = '/gametrics'
-    accountId = self.request.get('accountId')
-    propertyId = self.request.get('propertyId')
-    profileId = self.request.get('profileId')
-    redirectUrl = path + '?propertyId=' + propertyId \
-                  + "&accountId=" +  accountId \
-                  + "&profileId=" +  profileId
-    self.redirect(redirectUrl)
-
-class SegmentSelect(Handler): 
-
-  @decorator.oauth_aware
-  def post(self):
-    path = '/gametrics'
-    accountId = self.request.get('accountId')
-    propertyId = self.request.get('propertyId')
-    profileId = self.request.get('profileId')
-    redirectUrl = path + '?propertyId=' + propertyId \
-                  + "&accountId=" +  accountId \
-                  + "&profileId=" +  profileId
-    self.redirect(redirectUrl)
+    accountId = self.request.get('accountId') or None
+    propertyId = self.request.get('propertyId') or None
+    profileId = self.request.get('profileId') or None
+    self.render_page(accountId, propertyId, profileId)
 
 class GaMetrics(Handler):
 
@@ -241,6 +194,16 @@ class GaMetrics(Handler):
       self.render('ga2.html', **self.params)
     except TypeError, error:
       print 'There was a type error: %s' % error
+
+  def poster(self):
+    path = '/gametrics'
+    accountId = self.request.get('accountId')
+    propertyId = self.request.get('propertyId')
+    profileId = self.request.get('profileId')
+    redirectUrl = path + '?propertyId=' + propertyId \
+                  + "&accountId=" +  accountId \
+                  + "&profileId=" +  profileId
+    self.redirect(redirectUrl)
 
 class DashOne(Handler):
 
@@ -295,7 +258,6 @@ class DcSandbox(Handler):
       url = decorator.authorize_url()
       self.redirect(url)
 
-  @decorator.oauth_aware
   def fetch_profiles(self):
     try:
       profileList = list()
@@ -305,7 +267,6 @@ class DcSandbox(Handler):
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  @decorator.oauth_aware
   def fetch_reportList(self, profileId):
     try:
       reportList = list()
@@ -314,7 +275,6 @@ class DcSandbox(Handler):
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  @decorator.oauth_aware
   def fetch_metrics(self, profileId, metricsList):
     try:
       metricList = list()
@@ -371,7 +331,7 @@ class Error(Handler): ## Default handler for 404 errors
 app = webapp2.WSGIApplication([(r'/?', Home),
                                (decorator.callback_path, 
                                 decorator.callback_handler()),
-                               (r'/ga/?', GaSandbox),
+                               (r'/ga/?', GaManagement),
                                (r'/dc/?', DcSandbox),
                                (r'/accountselect/?', AccountSelect),
                                (r'/propertyselect/?', PropertySelect),
