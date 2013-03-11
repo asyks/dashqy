@@ -29,8 +29,8 @@ decorator = OAuth2Decorator(
   scope=['https://www.googleapis.com/auth/analytics.readonly',
          'https://www.googleapis.com/auth/dfareporting'])
 
-gamgmt = GaMgmt(decorator)
-dubClick = DoubleClick(decorator)
+gaCRpt = GaMgmt(decorator)
+dfaRpt = DoubleClick(decorator)
 
 class Handler(webapp2.RequestHandler):
 
@@ -103,11 +103,10 @@ class GaManagement(Handler):
   @decorator.oauth_aware
   def render_page(self):
     if decorator.has_credentials():
-      if self.params['accountId']:
-        if self.params['propertyId']:
-          self.fetch_profiles()
-        else:
-          self.fetch_properties()
+      if self.params['propertyId']:
+        self.fetch_profiles()
+      elif self.params['accountId']:
+        self.fetch_properties()
       else:
         self.fetch_accounts()
       self.render('ga1.html', **self.params)
@@ -118,7 +117,7 @@ class GaManagement(Handler):
   def fetch_accounts(self):
     try:
       accountList = list()
-      gamgmt.get_accounts(accountList)
+      gaCRpt.get_accounts(accountList)
       self.params['accountList'] = accountList 
     except TypeError, error:
       print 'There was a type error: %s' % error
@@ -126,7 +125,7 @@ class GaManagement(Handler):
   def fetch_properties(self):
     try:
       propertyList = list()
-      gamgmt.get_properties(propertyList, self.params['accountId'])
+      gaCRpt.get_properties(propertyList, self.params['accountId'])
       self.params['propertyList'] = propertyList
     except TypeError, error:
       print 'There was a type error: %s' % error
@@ -135,10 +134,10 @@ class GaManagement(Handler):
     try:
       profileList = list()
       segmentList = list()
-      gamgmt.get_profiles(profileList, 
+      gaCRpt.get_profiles(profileList, 
                           self.params['accountId'], 
                           self.params['propertyId'])
-      gamgmt.get_segments(segmentList)
+      gaCRpt.get_segments(segmentList)
       self.params['profileList'] = profileList
       self.params['segmentList'] = segmentList
     except TypeError, error:
@@ -186,7 +185,7 @@ class GaMetrics(Handler):
     endDate = endDate.strftime("%Y-%m-%d")
 
     try:
-      results = gamgmt.get_results(profileId, 
+      results = gaCRpt.get_results(profileId, 
                                    startDate, 
                                    endDate, 
                                    metricLabel,
@@ -199,16 +198,6 @@ class GaMetrics(Handler):
       self.render('ga2.html', **self.params)
     except TypeError, error:
       print 'There was a type error: %s' % error
-
-  def poster(self):
-    path = '/gametrics'
-    accountId = self.request.get('accountId')
-    propertyId = self.request.get('propertyId')
-    profileId = self.request.get('profileId')
-    redirectUrl = path + '?propertyId=' + propertyId \
-                  + "&accountId=" +  accountId \
-                  + "&profileId=" +  profileId
-    self.redirect(redirectUrl)
 
 class DashOne(Handler):
 
@@ -230,7 +219,7 @@ class DashOne(Handler):
       startDate = startDate.strftime("%Y-%m-%d")
       endDate = endDate.strftime("%Y-%m-%d")
       try:
-        results = gamgmt.get_results(profileId, 
+        results = gaCRpt.get_results(profileId, 
                                    startDate, 
                                    endDate, 
                                    metricLabel,
@@ -249,13 +238,24 @@ class DashOne(Handler):
 
 class DcSandbox(Handler): 
 
+  def initialize(self, *a, **kw):
+    webapp2.RequestHandler.initialize(self, *a, **kw)
+    self.user = users.get_current_user()
+    if not self.user:
+      request_uri = self.request.uri
+      login_url = users.create_login_url('/ga')
+      self.redirect(login_url)
+    self.params['metrics'] = dfaMetrics
+    self.params['profileId'] = None
+    self.params['metricsList'] = None
+
   @decorator.oauth_aware
-  def render_page(self, profileId=None, metricsList=None):
+  def render_page(self):
     if decorator.has_credentials():
-      if metricsList:
-        self.fetch_metrics(profileId, metricsList)
-      elif profileId:
-        self.fetch_reportList(profileId)
+      if self.params['metricsList']:
+        self.fetch_metrics()
+      elif self.params['profileId']:
+        self.fetch_reportList()
       else:
         self.fetch_profiles()
       self.render('dc1.html', **self.params)
@@ -266,21 +266,20 @@ class DcSandbox(Handler):
   def fetch_profiles(self):
     try:
       profileList = list()
-      dubClick.get_profiles(profileList) 
+      dfaRpt.get_profiles(profileList) 
       self.params['profileList'] = profileList 
-      self.params['metrics'] = dfaMetrics
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  def fetch_reportList(self, profileId):
+  def fetch_reportList(self):
     try:
       reportList = list()
-      dubClick.get_reportList(profileId, reportList)
-      logging.warning(reportList) 
+      dfaRpt.get_reportList(self.params['profileId'],
+                            self.params[' reportList'])
     except TypeError, error:
       print 'There was a type error: %s' % error
 
-  def fetch_metrics(self, profileId, metricsList):
+  def fetch_metrics(self):
     try:
       metricList = list()
       startDate = endDate = date.today()
@@ -288,10 +287,10 @@ class DcSandbox(Handler):
       endDate -= timedelta(days=1)
       startDate = startDate.strftime("%Y-%m-%d")
       endDate = endDate.strftime("%Y-%m-%d")
-      dubClick.get_metrics(profileId=profileId,
-                           startDate=startDate,
-                           endDate=endDate,
-                           dimensionName=metricsList[0]) 
+      dfaRpt.get_metrics(profileId=self.params['profileId'],
+                         startDate=startDate,
+                         endDate=endDate,
+                         dimensionName=self.params['metricsList'][0]) 
     except TypeError, error:
       print 'There was a type error: %s' % error
 
@@ -299,9 +298,9 @@ class DcSandbox(Handler):
     self.render_page()
 
   def post(self):
-    profileId = self.request.get('profileId')
-    metricsList = self.request.get_all('metric-select')
-    self.render_page(profileId, metricsList)
+    self.params['profileId'] = self.request.get('profileId') or None
+    self.params['metricsList'] = self.request.get_all('metric-select') or None
+    self.render_page()
 
 class DcMetrics(Handler): 
 
