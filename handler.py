@@ -247,18 +247,19 @@ class DcSandbox(Handler):
       self.redirect(login_url)
     self.params['metrics'] = dfaMetrics
     self.params['profileId'] = None
-    self.params['metricsList'] = None
+    self.params['reportId'] = None
 
   @decorator.oauth_aware
   def render_page(self):
     if decorator.has_credentials():
-      if self.params['metricsList']:
-        self.fetch_metrics()
-      elif self.params['profileId']:
+#      if self.params['reportId']:
+#        self.fetch_report()
+      if self.params['profileId']:
+#        self.fetch_metrics()
         self.fetch_reportList()
       else:
         self.fetch_profiles()
-      self.render('dc1.html', **self.params)
+      self.render('dc2.html', **self.params)
     else:
       url = decorator.authorize_url()
       self.redirect(url)
@@ -275,7 +276,20 @@ class DcSandbox(Handler):
     try:
       reportList = list()
       dfaRpt.get_reportList(self.params['profileId'],
-                            self.params[' reportList'])
+                            reportList)
+      self.params['reportList'] = reportList
+      logging.warning(reportList)
+    except TypeError, error:
+      print 'There was a type error: %s' % error
+
+  def fetch_report(self):
+    try:
+      report = list()
+      response = dfaRpt.get_report(self.params['profileId'],
+                            self.params['reportId'],
+                            report)
+      self.params['report'] = report
+      logging.warning(response)
     except TypeError, error:
       print 'There was a type error: %s' % error
 
@@ -290,7 +304,7 @@ class DcSandbox(Handler):
       dfaRpt.get_metrics(profileId=self.params['profileId'],
                          startDate=startDate,
                          endDate=endDate,
-                         dimensionName=self.params['metricsList'][0]) 
+                         dimensionName=self.params['metricList'][0]) 
     except TypeError, error:
       print 'There was a type error: %s' % error
 
@@ -299,7 +313,8 @@ class DcSandbox(Handler):
 
   def post(self):
     self.params['profileId'] = self.request.get('profileId') or None
-    self.params['metricsList'] = self.request.get_all('metric-select') or None
+    self.params['reportId'] = self.request.get('reportId') or None
+    self.params['metricList'] = self.request.get_all('metric') or None
     self.render_page()
 
 class DcMetrics(Handler): 

@@ -32,8 +32,8 @@ class GaMgmt(object):
     
   def get_profiles(self, profileList, accountId, propertyId):
     profiles = self.service.management().profiles().list(
-               accountId=accountId,
-               webPropertyId=propertyId)
+      accountId=accountId,
+      webPropertyId=propertyId)
     http = self.decorator.http()
     response = profiles.execute(http=http)
     for item in response.get('items'):
@@ -79,13 +79,24 @@ class DoubleClick(object):
       profileList.append(profile)
 
   def get_reportList(self, profileId, reportList): 
-    reportList = self.service.reports().list(profileId=profileId)
+    reports = self.service.reports().list(profileId=profileId)
     http = self.decorator.http()
-    response = reportList.execute(http=http)
+    response = reports.execute(http=http)
     for item in response.get('items'):
       report = dict()
       report['id'] = item.get('id')
       reportList.append(report)
+    
+  def get_report(self, profileId, reportId, List): 
+    reports = self.service.reports().get(profileId=profileId, 
+                                         reportId=reportId)
+    http = self.decorator.http()
+    response = reports.execute(http=http)
+    return response
+#    for item in response.get('items'):
+#      report = dict()
+#      report['id'] = item.get('id')
+#      reportList.append(report)
     
   def get_metrics(self, profileId, startDate, endDate, dimensionName): 
     body = dict()
@@ -98,3 +109,4 @@ class DoubleClick(object):
                                                    body=body)
     http = self.decorator.http()
     response = results.execute(http=http)
+    return response
