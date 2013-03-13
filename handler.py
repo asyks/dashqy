@@ -5,7 +5,7 @@ from apiclient.discovery import build
 from oauth2client.appengine import OAuth2Decorator
 
 ## standard python library imports
-import os, webapp2, jinja2, logging, json, pprint
+import os, webapp2, jinja2, logging, json, pprint, urllib
 from datetime import date
 from datetime  import timedelta
 
@@ -66,7 +66,6 @@ class Handler(webapp2.RequestHandler):
   def render_json(self, d):
     json_content = 'application/json; charset=utf-8'
     self.response.headers['Content-Type'] = json_content
-    logging.warning(d)
     json_text = json.dumps(d, sort_keys=True, indent=4, separators=(',', ': '))
     self.write(json_text)
 
@@ -157,13 +156,11 @@ class GaMetrics(Handler):
   @decorator.oauth_aware
   def get(self):
     profileId = self.request.get('profileId')
-    logging.warning(profileId)
     self.params['profileId'] = profileId
     self.render('ga1.html', **self.params)
 
   def post(self):
     profileId = self.request.get('profileId')
-    logging.warning(profileId)
     metrics = self.request.get_all('metrics')
     dateRange = int(self.request.get('dateRange'))
     segmentId = self.request.get('segmentId') or None
@@ -248,14 +245,19 @@ class DcSandbox(Handler):
     self.params['metrics'] = dfaMetrics
     self.params['profileId'] = None
     self.params['reportId'] = None
+    self.params['fileId'] = None
+    self.params['fileObj'] = None
 
   @decorator.oauth_aware
   def render_page(self):
     if decorator.has_credentials():
-#      if self.params['reportId']:
-#        self.fetch_report()
-      if self.params['profileId']:
-#        self.fetch_metrics()
+      if self.params['fileObj']:
+        self.fetch_csv()
+      if self.params['fileId']:
+        self.fetch_file()
+      elif self.params['reportId']:
+        self.fetch_fileList()
+      elif self.params['profileId']:
         self.fetch_reportList()
       else:
         self.fetch_profiles()
@@ -276,9 +278,8 @@ class DcSandbox(Handler):
     try:
       reportList = list()
       dfaRpt.get_reportList(self.params['profileId'],
-                            reportList)
+        reportList)
       self.params['reportList'] = reportList
-      logging.warning(reportList)
     except TypeError, error:
       print 'There was a type error: %s' % error
 
@@ -286,12 +287,41 @@ class DcSandbox(Handler):
     try:
       report = list()
       response = dfaRpt.get_report(self.params['profileId'],
-                            self.params['reportId'],
-                            report)
+        self.params['reportId'],
+        report)
       self.params['report'] = report
-      logging.warning(response)
     except TypeError, error:
       print 'There was a type error: %s' % error
+
+  def fetch_fileList(self):
+    try:
+      files = list()
+      dfaRpt.get_fileList(self.params['profileId'],
+        self.params['reportId'],
+        files)
+      self.params['files'] = files 
+    except TypeError, error:
+      print 'There was a type error: %s' % error
+
+  def fetch_file(self):
+    try:
+      fileObj = dict()
+      response = dfaRpt.get_file(self.params['profileId'],
+        self.params['reportId'],
+        self.params['fileId'],
+        fileObj)
+      self.params['fileObj'] = fileObj
+    except TypeError, error:
+      print 'There was a type error: %s' % error
+
+  def fetch_csv(self):
+#    body = urllib.urlencode({'access_toke':  \
+#     decorator.credentials.access_token})
+#    http = httplib2.Http()
+    http = decorator.http()
+    response, content = http.request('https://storage.googleapis.com/dfa_-17f5a4e8dd95cd214c8159f5678d67bc08f77034/636_query_20130312_003243_1850705.csv', method='GET')
+    logging.warning(response)
+    logging.warning(content)
 
   def fetch_metrics(self):
     try:
@@ -302,9 +332,9 @@ class DcSandbox(Handler):
       startDate = startDate.strftime("%Y-%m-%d")
       endDate = endDate.strftime("%Y-%m-%d")
       dfaRpt.get_metrics(profileId=self.params['profileId'],
-                         startDate=startDate,
-                         endDate=endDate,
-                         dimensionName=self.params['metricList'][0]) 
+        startDate=startDate,
+        endDate=endDate,
+        dimensionName=self.params['metricList'][0]) 
     except TypeError, error:
       print 'There was a type error: %s' % error
 
@@ -314,7 +344,7 @@ class DcSandbox(Handler):
   def post(self):
     self.params['profileId'] = self.request.get('profileId') or None
     self.params['reportId'] = self.request.get('reportId') or None
-    self.params['metricList'] = self.request.get_all('metric') or None
+    self.params['fileId'] = self.request.get('fileId') or None
     self.render_page()
 
 class DcMetrics(Handler): 

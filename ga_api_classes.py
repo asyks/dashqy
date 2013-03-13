@@ -87,16 +87,25 @@ class DoubleClick(object):
       report['id'] = item.get('id')
       reportList.append(report)
     
-  def get_report(self, profileId, reportId, List): 
-    reports = self.service.reports().get(profileId=profileId, 
-                                         reportId=reportId)
+  def get_fileList(self, profileId, reportId, files): 
+    reports = self.service.reports().files().list(profileId=profileId,
+      reportId=reportId)
     http = self.decorator.http()
     response = reports.execute(http=http)
-    return response
-#    for item in response.get('items'):
-#      report = dict()
-#      report['id'] = item.get('id')
-#      reportList.append(report)
+    for item in response.get('items'):
+      f = dict()
+      f['id'] = item.get('id')
+      files.append(f)
+    
+  def get_file(self, profileId, reportId, fileId, fileObj): 
+    reports = self.service.reports().files().get(profileId=profileId, 
+      reportId=reportId,
+      fileId=fileId)
+    http = self.decorator.http()
+    response = reports.execute(http=http)
+    fileObj['id'] = response.get('id')
+    fileObj['reportId'] = response.get('reportId')
+    fileObj['apiUrl'] = response.get('urls').get('apiUrl')
     
   def get_metrics(self, profileId, startDate, endDate, dimensionName): 
     body = dict()
@@ -106,7 +115,7 @@ class DoubleClick(object):
     body['endDate'] = endDate
     body['filters'] = list()
     results = self.service.dimensionValues().query(profileId=profileId,
-                                                   body=body)
+      body=body)
     http = self.decorator.http()
     response = results.execute(http=http)
     return response
