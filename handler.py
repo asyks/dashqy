@@ -246,12 +246,12 @@ class DcSandbox(Handler):
     self.params['profileId'] = None
     self.params['reportId'] = None
     self.params['fileId'] = None
-    self.params['fileObj'] = None
+    self.params['apiUrl'] = None
 
   @decorator.oauth_aware
   def render_page(self):
     if decorator.has_credentials():
-      if self.params['fileObj']:
+      if self.params['apiUrl']:
         self.fetch_csv()
       if self.params['fileId']:
         self.fetch_file()
@@ -315,11 +315,10 @@ class DcSandbox(Handler):
       print 'There was a type error: %s' % error
 
   def fetch_csv(self):
-#    body = urllib.urlencode({'access_toke':  \
-#     decorator.credentials.access_token})
-#    http = httplib2.Http()
-    http = decorator.http()
-    response, content = http.request('https://storage.googleapis.com/dfa_-17f5a4e8dd95cd214c8159f5678d67bc08f77034/636_query_20130312_003243_1850705.csv', method='GET')
+    http = httplib2.Http()
+    response, content = http.request(
+      self.params['fileObj'].get('apiUrl'),
+       method='GET')
     logging.warning(response)
     logging.warning(content)
 
@@ -345,6 +344,7 @@ class DcSandbox(Handler):
     self.params['profileId'] = self.request.get('profileId') or None
     self.params['reportId'] = self.request.get('reportId') or None
     self.params['fileId'] = self.request.get('fileId') or None
+    self.params['apiUrl'] = self.request.get('apiUrl') or None
     self.render_page()
 
 class DcMetrics(Handler): 
