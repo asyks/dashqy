@@ -2,125 +2,98 @@
 
 {% block content %}
 
-{% if accountList %}
 <form name="accounts-table" method="post" action="/ga">
-	<table>
-	{% for account in accountList %}
-		<tr>
-			<td>
-				<input type="radio" name="accountId" value={{ account.id }}>
-			</td>
-			<td>
-				{{ account.name }}
-			</td>
-		</tr>
-	{% endfor %}
-	</table>
-	{% if accountList %}
-		<div>
-				<input type="submit" value="Select Account">
-		</div>
+
+	<label>
+		Account:
+		<select name="accountId">
+			{% for account in accountList %}
+				<option value={{ account.id }} {% if account.id == accountId %}selected{% endif %}>
+					{{ account.name }}
+				</option>
+			{% endfor %}
+		</select>
+	</label>
+			
+	{% if propertyList %}
+	<label>
+		Property:
+		<select name="propertyId">
+			{% for property in propertyList %}
+				<option value={{ property.id }} {% if property.id == propertyId %}selected{% endif %}>
+					{{ property.name }}
+				</option>
+			{% endfor %}
+		</select>
+	</label>
 	{% endif %}
-</form>
-<br>
-{% endif %}
 
-{% if propertyList %}
-<form name="properties-table" method="post" action="/ga">
-	<div>
-			<input type="text" name="accountId" value={{ accountId }}>
-	</div>
-	<table>
-	{% for property in propertyList %}
-		<tr>
-			<td>
-				<input type="radio" name="propertyId" value={{ property.id }}>
-			</td>
-			<td>
-				{{ property.name }}
-			</td>
-		</tr>
-	{% endfor %}
-	</table>
-	<div>
-			<input type="submit" value="Select Property">
-	</div>
-</form>
-<br>
-{% endif %}
-
-{% if profileList %}
-<form name="profiles-table" method="post" action="/ga">
-	<div>
-			<input type="text" name="accountId" value={{ accountId }}>
-	</div>
-	<div>
-			<input type="text" name="propertyId" value={{ propertyId }}>
-	</div>
-	<table>
-	{% for profile in profileList %}
-		<tr>
-			<td>
-				<input type="radio" name="profileId" value={{ profile.id }}>
-			</td>
-			<td>
-				{{ profile.name }}
-			</td>
-		</tr>
-	{% endfor %}
-	</table>
-	<div>
-			<input type="submit" value="Select Profile">
-	</div>
-</form>
-<br>
-{% endif %}
+	{% if profileList %}
+	<label>
+		Profile:
+		<select name="profileId">
+			{% for profile in profileList %}
+				<option value={{ profile.id }} {% if profile.id == profileId %}selected{% endif %}>
+					{{ profile.name }}
+				</option>
+			{% endfor %}
+		</select>
+	</label>
+	{% endif %}
 
 {% if profileId %}
-<form name="metrics-table" method="post" action="/ga/metrics">
-	<div>
-		<input type="text" name="profileId" value={{ profileId }}>
-	</div>
-	<div>
+	<label>
+		Date Range:
 		<select name="dateRange">
 			<option value=1>Last Week</option>
 			<option value=2>Last 30 Days</option>
 			<option value=3>Last 90 Days</option>
 		</select>
-	</div>
+	</label>
+
 	<div>
-		<input type="checkbox" name="metrics" value="visits">
-			Visits
-		</input>
-		<input type="checkbox" name="metrics" value="visitors">
-			Visitors
-		</input>
-		<input type="checkbox" name="metrics" value="bounces">
-			Bounces
-		</input>
-		<input type="checkbox" name="metrics" value="visitBounceRate">
-			Bounce Rate
-		</input>
+		Metrics:
+		{% for metric in metrics %}
+			<input type="checkbox" name="metric" value="{{ metric }}">
+			<label>
+				{{ metric }}
+			</label>
+		{% endfor %}
 	</div>
+
 	<div>
 		Advanced Segements:
-	</div>
-		<table>
 		{% for segment in segmentList %}
-			<tr>
-				<td>
-					<input type="radio" name="segmentId" value={{ segment.id }}>
-				</td>
-				<td>
-					{{ segment.name }}
-				</td>
-			</tr>
+			<label>
+				{{ segment.name }}
+				<input type="radio" name="segmentId" value="{{ segment.id }}">
+			</label>
 		{% endfor %}
-		</table>
-	<div>
-			<input type="submit" value="Select Metrics">
 	</div>
-</form>
+
 {% endif %}
+
+{% if metricList %}
+
+	<table name="metric-table">
+		{% for key in results %}
+		<tr>
+			<td>	
+				{{ key.split(':')[1] }}:
+			</td>
+			<td>	
+				{{ results[key] }}	
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+
+{% endif %}
+
+	<div>
+			<input type="submit" value="SELECT">
+	</div>
+
+</form>
 
 {% endblock %}

@@ -27,7 +27,8 @@ decorator = OAuth2Decorator(
 	client_id='1048565728869.apps.googleusercontent.com',
 	client_secret='7UniAw2jEuomwSpRpRI5kbzz',
   scope=['https://www.googleapis.com/auth/analytics.readonly',
-         'https://www.googleapis.com/auth/dfareporting'])
+         'https://www.googleapis.com/auth/dfareporting',
+         'https://www.googleapis.com/auth/devstorage.read_only'])
 
 gaCRpt = GaMgmt(decorator)
 dfaRpt = DoubleClick(decorator)
@@ -95,14 +96,18 @@ class GaManagement(Handler):
       request_uri = self.request.uri
       login_url = users.create_login_url('/ga')
       self.redirect(login_url)
+    self.params['metrics'] = gaMetrics 
     self.params['accountId'] = None
     self.params['propertyId'] = None
     self.params['profileId'] = None
+    self.params['metricList'] = None
 
   @decorator.oauth_aware
   def render_page(self):
     if decorator.has_credentials():
-      if self.params['propertyId']:
+      if self.params['metricList']:
+				self.fetch_metricList()
+      elif self.params['propertyId']:
         self.fetch_profiles()
       elif self.params['accountId']:
         self.fetch_properties()
@@ -134,11 +139,39 @@ class GaManagement(Handler):
       profileList = list()
       segmentList = list()
       gaCRpt.get_profiles(profileList, 
-                          self.params['accountId'], 
-                          self.params['propertyId'])
+        self.params['accountId'], 
+        self.params['propertyId'])
       gaCRpt.get_segments(segmentList)
       self.params['profileList'] = profileList
       self.params['segmentList'] = segmentList
+    except TypeError, error:
+      print 'There was a type error: %s' % error
+
+  def fetch_metricList(self):
+    metricLabel = 'ga:'
+    metricList = self.params['metricList'][:10]
+    metricLabel += (',' + metricLabel).join(metricList)
+    logging.warning(metricLabel)
+    startDate = endDate = date.today()
+    if self.params['dateRange'] == 1:
+      startDate -= timedelta(days=8)
+      endDate -= timedelta(days=1)
+    elif self.params['dateRange'] == 2:
+      startDate -= timedelta(days=31)
+      endDate -= timedelta(days=1)
+    elif self.params['dateRange'] == 3:
+      startDate -= timedelta(days=1)
+      endDate -= timedelta(days=91)
+    startDate = startDate.strftime("%Y-%m-%d")
+    endDate = endDate.strftime("%Y-%m-%d")
+
+    try:
+      results = gaCRpt.get_results(self.params['profileId'], 
+        startDate, 
+        endDate, 
+        metricLabel,
+        self.params['segmentId'])
+      self.params['results'] = results.get('totalsForAllResults')
     except TypeError, error:
       print 'There was a type error: %s' % error
 
@@ -149,6 +182,11 @@ class GaManagement(Handler):
     self.params['accountId'] = self.request.get('accountId') or None
     self.params['propertyId'] = self.request.get('propertyId') or None
     self.params['profileId'] = self.request.get('profileId') or None
+    self.params['metricList'] = self.request.get_all('metric') or None
+    self.params['segmentId'] = self.request.get('segmentId') or None
+    self.params['dateRange'] = self.request.get('dateRange') or None
+    if self.params['dateRange']:
+      self.params['dateRange'] = int(self.params['dateRange'])
     self.render_page()
 
 class GaMetrics(Handler):
