@@ -106,11 +106,8 @@ class GaSandbox(Handler):
   @decorator.oauth_aware
   def render_page(self):
     if decorator.has_credentials():
-      logging.warning(self.params['accountId'])
-      logging.warning(self.params['propertyId'])
-      logging.warning(self.params['profileId'])
       if self.params['metricList']:
-				self.fetch_metricList()
+        self.fetch_metricList()
       elif self.params['propertyId']:
         self.fetch_profiles()
       elif self.params['accountId']:

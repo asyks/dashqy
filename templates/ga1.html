@@ -4,111 +4,129 @@
 
 <form name="ga-selection" method="post" action="/ga">
 
-<div class="account-management">
-
-<div>
-	<label>
-		Account:
-		<select name="accountId">
-			{% for account in accountList %}
-				<option value={{ account.id }} 
-				{% if account.id == accountId %}
-					selected
-				{% endif %}>
-					{{ account.name }}
-				</option>
-			{% endfor %}
-		</select>
-	</label>
+<div class="section selection-button">
+	Google Analytics Query Tool
+	<input type="submit" value="SELECT">
 </div>
+
+<div class="section account-management">
+
+	<div class="selector">
+		<label>
+			Account:
+		</label>
+			<select name="accountId">
+				{% for account in accountList %}
+					<option value={{ account.id }} 
+					{% if account.id == accountId %}
+						selected
+					{% endif %}>
+						{{ account.name }}
+					</option>
+				{% endfor %}
+			</select>
+	</div>
 			
 {% if accountId %}
-<div>
-	<label>
-		Property:
-		<select name="propertyId">
-			{% for property in propertyList %}
-				<option value={{ property.id }}
-				{% if property.id == propertyId %}
-					selected
-				{% endif %}>
-					{{ property.name }}
-				</option>
-			{% endfor %}
-		</select>
-	</label>
-</div>
+	<div class="selector">
+		<label>
+			Property:
+		</label>
+			<select name="propertyId">
+				{% for property in propertyList %}
+					<option value={{ property.id }}
+					{% if property.id == propertyId %}
+						selected
+					{% endif %}>
+						{{ property.name }}
+					</option>
+				{% endfor %}
+			</select>
+	</div>
 {% endif %}
 
 {% if propertyId %}
-<div>
-	<label>
-		Profile:
-		<select name="profileId">
-			{% for profile in profileList %}
-				<option value={{ profile.id }}
-				{% if profile.id == profileId %}
-					selected
-				{% endif %}>
-					{{ profile.name }}
-				</option>
-			{% endfor %}
-		</select>
-	</label>
-</div>
+	<div class="selector">
+		<label>
+			Profile:
+		</label>
+			<select name="profileId">
+				{% for profile in profileList %}
+					<option value={{ profile.id }}
+					{% if profile.id == profileId %}
+						selected
+					{% endif %}>
+						{{ profile.name }}
+					</option>
+				{% endfor %}
+			</select>
+	</div>
 {% endif %}
 
 </div>
 
 {% if profileId %}
-	<label>
-		Date Range:
-		<select name="dateRange">
-			<option value=1>Last Week</option>
-			<option value=2>Last 30 Days</option>
-			<option value=3>Last 90 Days</option>
-		</select>
-	</label>
 
-	<div>
-		Metrics:
+<div class="section metric-selection">
+
+	<div class="selector">
+		<label>
+			Date Range:
+		</label>
+			<select name="dateRange">
+				<option value=1>Last Week</option>
+				<option value=2>Last 30 Days</option>
+				<option value=3>Last 90 Days</option>
+			</select>
+	</div>
+
+	<div class="selector">
+		<label>
+			Segments:
+		</label>
+			<select name="segmentId">
+			{% for segment in segmentList %}
+				<option value="{{ segment.id }}">
+					{{ segment.name }}
+				</option>
+			{% endfor %}
+			</select>
+	</div>
+
+	<div class="selector">
+		<label>
+			Metrics:
+		</label>
+		<select name="metric" multiple="multiple" class="multi-select">
 		{% for metric in metrics %}
-			<input type="checkbox" name="metric" value="{{ metric }}">
-			<label>
+			<option value="{{ metric }}">
 				{{ metric }}
-			</label>
+			</option>
 		{% endfor %}
+		</select>
 	</div>
 
-	<div>
-		Advanced Segements:
-		{% for segment in segmentList %}
-			<label>
-				{{ segment.name }}
-				<input type="radio" name="segmentId" value="{{ segment.id }}">
-			</label>
-		{% endfor %}
-	</div>
+</div>
+
 {% endif %}
 
 {% if metricList %}
-	<table name="metric-table">
-		{% for key in results %}
-		<tr>
-			<td>	
-				{{ key.split(':')[1] }}:
-			</td>
-			<td>	
-				{{ results[key] }}	
-			</td>
-		</tr>
-		{% endfor %}
-	</table>
+	<div class="section results-area">
+		<table name="results-table">
+			{% for key in results %}
+			<tr>
+				<td>	
+					{{ key.split(':')[1] }}:
+				</td>
+				<td>	
+					{{ results[key] }}	
+				</td>
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
 {% endif %}
 
-	<div>
-			<input type="submit" value="SELECT">
-	</div>
 
 </form>
 

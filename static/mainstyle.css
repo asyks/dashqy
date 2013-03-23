@@ -2,7 +2,6 @@
 body, html {
 	margin:0;
 	padding:0;
-	background:#a7a09a;
 }
 
 body {
@@ -21,13 +20,70 @@ a {
   text-decoration: none;
 }
 
-div[class="account-management"] {
+div.selector + div.selector {
+	margin-top: 10px;
+}
+
+select {
+	width: 300px;
+}
+
+label {
+	display: block;
+	width: 60px;
 	float: left;
-	height: 200px;
-	width: 500px;
+	padding-right: 10px;
+	text-align: right;
+	width: 120px;
+}
+
+select.multi-select {
+	height: 125px;	
+}
+
+div.selection-button {
+	height: 25px;
+	width: auto;
+	padding: 5px;
 	background: #f5f5f5;	
 }
 
-div + div {
+input[type="submit"] {
+	width: 125px;
+	font-size: 16px;
+	font-weight: 125px;
+}
+
+div.section {
+	padding: 5px;
+	background: #f5f5f5;	
+	border-style: solid;
+	border-width: 1px;
+	border-color:  #a7a09a;
+}
+
+div.account-management {
+	position: absolute;
 	margin-top: 10px;
+	height: 120px;
+	width: 500px;
+}
+
+div.metric-selection {
+	position: absolute;
+	margin-top: 150px;
+	height: 200px;
+	width: 500px;
+}
+
+div.results-area {
+	margin-left: 520px;
+	margin-top: 10px;
+	position: absolute;
+	height: 340px;
+	width: 470px;
+}
+
+div.submit-button {
+	background: #f5f5f5;	
 }
