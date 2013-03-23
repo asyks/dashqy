@@ -67,7 +67,8 @@ class Handler(webapp2.RequestHandler):
   def render_json(self, d):
     json_content = 'application/json; charset=utf-8'
     self.response.headers['Content-Type'] = json_content
-    json_text = json.dumps(d, sort_keys=True, indent=4, separators=(',', ': '))
+    json_text = json.dumps(d, sort_keys=True, 
+      indent=4, separators=(',', ': '))
     self.write(json_text)
 
   params = {} ## params contains key value pairs used by jinja2
@@ -87,7 +88,7 @@ class Home(Handler):
     self.write('the home page')
     ## self.render('home.html', **self.params)
 
-class GaManagement(Handler): 
+class GaSandbox(Handler): 
 
   def initialize(self, *a, **kw):
     webapp2.RequestHandler.initialize(self, *a, **kw)
@@ -174,102 +175,46 @@ class GaManagement(Handler):
       self.params['results'] = results.get('totalsForAllResults')
     except TypeError, error:
       print 'There was a type error: %s' % error
+    except HttpError, error:
+      print 'There was a http error: %s' % error
 
   def get(self):
     self.render_page()
 
   def post(self):
-    self.params['accountId'] = self.request.get('accountId') or None
-    self.params['propertyId'] = self.request.get('propertyId') or None
-    self.params['profileId'] = self.request.get('profileId') or None
-    self.params['metricList'] = self.request.get_all('metric') or None
-    self.params['segmentId'] = self.request.get('segmentId') or None
-    self.params['dateRange'] = self.request.get('dateRange') or None
+    self.params['accountId'] = self.request.get('accountId')
+    self.params['propertyId'] = self.request.get('propertyId')
+    self.params['profileId'] = self.request.get('profileId')
+    self.params['metricList'] = self.request.get_all('metric')
+    logging.warning(self.params['accountId'])
+#    logging.warning(accountId)
+    logging.warning(self.params['propertyId'])
+    # test if self.params['propertyId'].split('-')[1]
+    if self.params['accountId'] and self.params['propertyId'] and \
+      self.params['accountId'] != \
+      self.params['propertyId'].split('-')[1]:
+      self.params['propertyId'] = self.params['profileId'] = \
+        self.params['metricList']= None
+#    elif propertyId != self.params['propertyId']:
+#      logging.warning('checking')
+#      self.params['propertyId'] = propertyId
+#      self.params['profileId'] = self.params['metricList'] = None
+#    elif profileId != self.params['profileId']:
+#      self.params['profileId'] = profileId
+#      self.params['metricList'] = self.params['segmentId'] = None
+#    else:
+#      self.params['accountId'] = accountId
+#      self.params['propertyId'] = propertyId
+#      self.params['profileId'] = profileId
+#      self.params['metricList'] = metricList
+    self.params['segmentId'] = self.request.get('segmentId')
+    self.params['dateRange'] = self.request.get('dateRange')
     if self.params['dateRange']:
       self.params['dateRange'] = int(self.params['dateRange'])
+#    logging.warning(self.params['accountId'])
+#    logging.warning(self.params['propertyId'])
+#    logging.warning(self.params['profileId'])
     self.render_page()
-
-class GaMetrics(Handler):
-
-  @decorator.oauth_aware
-  def get(self):
-    profileId = self.request.get('profileId')
-    self.params['profileId'] = profileId
-    self.render('ga1.html', **self.params)
-
-  def post(self):
-    profileId = self.request.get('profileId')
-    metrics = self.request.get_all('metrics')
-    dateRange = int(self.request.get('dateRange'))
-    segmentId = self.request.get('segmentId') or None
-
-    metricLabel = 'ga:'
-    metricLabel += (',' + metricLabel).join(metrics)
-
-    startDate = endDate = date.today()
-    if dateRange == 1:
-      startDate -= timedelta(days=8)
-      endDate -= timedelta(days=1)
-    elif dateRange == 2:
-      startDate -= timedelta(days=31)
-      endDate -= timedelta(days=1)
-    elif dateRange == 3:
-      startDate -= timedelta(days=1)
-      endDate -= timedelta(days=91)
-    startDate = startDate.strftime("%Y-%m-%d")
-    endDate = endDate.strftime("%Y-%m-%d")
-
-    try:
-      results = gaCRpt.get_results(profileId, 
-                                   startDate, 
-                                   endDate, 
-                                   metricLabel,
-                                   segmentId)
-      self.params['results'] = results.get('totalsForAllResults')
-      self.params['profileId'] = results.get('profileInfo') \
-                                       .get('profileId')
-      self.params['profileName'] = results.get('profileInfo') \
-                                          .get('profileName')
-      self.render('ga2.html', **self.params)
-    except TypeError, error:
-      print 'There was a type error: %s' % error
-
-class DashOne(Handler):
-
-  @decorator.oauth_aware
-  def get(self):
-    if decorator.has_credentials():
-      profileId = str(57024164)
-      segmentId = str(1947454746)
-      metrics = ['visitors',
-                 'visits',
-                 'bounces',
-                 'visitBounceRate',
-                 'timeOnSite']
-      metricLabel = 'ga:'
-      metricLabel += (',' + metricLabel).join(metrics)
-      startDate = endDate = date.today()
-      startDate -= timedelta(days=15)
-      endDate -= timedelta(days=1)
-      startDate = startDate.strftime("%Y-%m-%d")
-      endDate = endDate.strftime("%Y-%m-%d")
-      try:
-        results = gaCRpt.get_results(profileId, 
-                                   startDate, 
-                                   endDate, 
-                                   metricLabel,
-                                   segmentId)
-        self.params['results'] = results.get('totalsForAllResults')
-        self.params['profileId'] = results.get('profileInfo') \
-                                 .get('profileId')
-        self.params['profileName'] = results.get('profileInfo') \
-                                   .get('profileName')
-        self.render('ga2.html', **self.params)
-      except TypeError, error:
-        print 'There was a type error: %s' % error
-    else:
-      url = decorator.authorize_url()
-      self.redirect(url)
 
 class DcSandbox(Handler): 
 
@@ -311,6 +256,8 @@ class DcSandbox(Handler):
       self.params['profileList'] = profileList 
     except TypeError, error:
       print 'There was a type error: %s' % error
+    except HttpError, error:
+      print 'There was a http error: %s' % error
 
   def fetch_reportList(self):
     try:
@@ -320,6 +267,8 @@ class DcSandbox(Handler):
       self.params['reportList'] = reportList
     except TypeError, error:
       print 'There was a type error: %s' % error
+    except HttpError, error:
+      print 'There was a http error: %s' % error
 
   def fetch_report(self):
     try:
@@ -330,6 +279,8 @@ class DcSandbox(Handler):
       self.params['report'] = report
     except TypeError, error:
       print 'There was a type error: %s' % error
+    except HttpError, error:
+      print 'There was a http error: %s' % error
 
   def fetch_fileList(self):
     try:
@@ -340,6 +291,8 @@ class DcSandbox(Handler):
       self.params['files'] = files 
     except TypeError, error:
       print 'There was a type error: %s' % error
+    except HttpError, error:
+      print 'There was a http error: %s' % error
 
   def fetch_file(self):
     try:
@@ -351,6 +304,8 @@ class DcSandbox(Handler):
       self.params['fileObj'] = fileObj
     except TypeError, error:
       print 'There was a type error: %s' % error
+    except HttpError, error:
+      print 'There was a http error: %s' % error
 
   def fetch_csv(self):
     http = httplib2.Http()
@@ -374,6 +329,8 @@ class DcSandbox(Handler):
         dimensionName=self.params['metricList'][0]) 
     except TypeError, error:
       print 'There was a type error: %s' % error
+    except HttpError, error:
+      print 'There was a http error: %s' % error
 
   def get(self):
     self.render_page()
@@ -401,6 +358,45 @@ class DcMetrics(Handler):
     except TypeError, error:
       print 'There was a type error: %s' % error
 
+## This is the test class for the combined GA and DFA dasbhboard
+## resuming work on it depends on getting DFA metric fetching working
+class DashOne(Handler):
+
+  @decorator.oauth_aware
+  def get(self):
+    if decorator.has_credentials():
+      profileId = str(57024164)
+      segmentId = str(1947454746)
+      metrics = ['visitors',
+                 'visits',
+                 'bounces',
+                 'visitBounceRate',
+                 'timeOnSite']
+      metricLabel = 'ga:'
+      metricLabel += (',' + metricLabel).join(metrics)
+      startDate = endDate = date.today()
+      startDate -= timedelta(days=15)
+      endDate -= timedelta(days=1)
+      startDate = startDate.strftime("%Y-%m-%d")
+      endDate = endDate.strftime("%Y-%m-%d")
+      try:
+        results = gaCRpt.get_results(profileId, 
+                                   startDate, 
+                                   endDate, 
+                                   metricLabel,
+                                   segmentId)
+        self.params['results'] = results.get('totalsForAllResults')
+        self.params['profileId'] = results.get('profileInfo') \
+                                 .get('profileId')
+        self.params['profileName'] = results.get('profileInfo') \
+                                   .get('profileName')
+        self.render('ga2.html', **self.params)
+      except TypeError, error:
+        print 'There was a type error: %s' % error
+    else:
+      url = decorator.authorize_url()
+      self.redirect(url)
+
 class Logout(Handler): ## Handler for Home page requests
 
   def get(self):
@@ -418,8 +414,7 @@ class Error(Handler): ## Default handler for 404 errors
 app = webapp2.WSGIApplication([(r'/?', Home),
                                (decorator.callback_path, 
                                 decorator.callback_handler()),
-                               (r'/ga/?', GaManagement),
-                               (r'/ga/metrics/?', GaMetrics),
+                               (r'/ga/?', GaSandbox),
                                (r'/dc/?', DcSandbox),
                                (r'/dash1/?', DashOne),
                                (r'/logout/?', Logout),
