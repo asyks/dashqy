@@ -21,7 +21,8 @@ class GaMgmt(object):
       accountList.append(account)
     
   def get_properties(self, propertyList, accountId):
-    properties = self.service.management().webproperties().list(accountId=accountId)
+    properties = self.service.management().webproperties() \
+      .list(accountId=accountId)
     http = self.decorator.http()
     response = properties.execute(http=http)
     for item in response.get('items'):
@@ -52,7 +53,7 @@ class GaMgmt(object):
       segment['name'] = item.get('name')
       segmentList.append(segment)
     
-  def get_results(self,profileId,startDate,endDate,metrics,segmentId):
+  def get_metrics(self,profileId,startDate,endDate,metrics,segmentId):
     results = self.service.data().ga().get(
       ids='ga:' + profileId,
       start_date=startDate,

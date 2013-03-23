@@ -1,0 +1,33 @@
+
+body, html {
+	margin:0;
+	padding:0;
+	background:#a7a09a;
+}
+
+body {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 18px;
+	width: 1000px;
+	padding: 10px;
+	color: #333;
+}
+
+.error {
+  color: red;	
+}
+
+a {
+  text-decoration: none;
+}
+
+div[class="account-management"] {
+	float: left;
+	height: 200px;
+	width: 500px;
+	background: #f5f5f5;	
+}
+
+div + div {
+	margin-top: 10px;
+}

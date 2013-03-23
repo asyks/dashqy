@@ -1,6 +1,6 @@
 
 ## google OAuth 2.0 and API imports
-import httplib2, uritemplate, gflags, gflags_validators
+import httplib2, urllib2, uritemplate, gflags, gflags_validators
 from apiclient.discovery import build
 from oauth2client.appengine import OAuth2Decorator
 
@@ -106,6 +106,9 @@ class GaSandbox(Handler):
   @decorator.oauth_aware
   def render_page(self):
     if decorator.has_credentials():
+      logging.warning(self.params['accountId'])
+      logging.warning(self.params['propertyId'])
+      logging.warning(self.params['profileId'])
       if self.params['metricList']:
 				self.fetch_metricList()
       elif self.params['propertyId']:
@@ -152,7 +155,6 @@ class GaSandbox(Handler):
     metricLabel = 'ga:'
     metricList = self.params['metricList'][:10]
     metricLabel += (',' + metricLabel).join(metricList)
-    logging.warning(metricLabel)
     startDate = endDate = date.today()
     if self.params['dateRange'] == 1:
       startDate -= timedelta(days=8)
@@ -167,7 +169,7 @@ class GaSandbox(Handler):
     endDate = endDate.strftime("%Y-%m-%d")
 
     try:
-      results = gaCRpt.get_results(self.params['profileId'], 
+      results = gaCRpt.get_metrics(self.params['profileId'], 
         startDate, 
         endDate, 
         metricLabel,
@@ -175,8 +177,6 @@ class GaSandbox(Handler):
       self.params['results'] = results.get('totalsForAllResults')
     except TypeError, error:
       print 'There was a type error: %s' % error
-    except HttpError, error:
-      print 'There was a http error: %s' % error
 
   def get(self):
     self.render_page()
@@ -186,34 +186,15 @@ class GaSandbox(Handler):
     self.params['propertyId'] = self.request.get('propertyId')
     self.params['profileId'] = self.request.get('profileId')
     self.params['metricList'] = self.request.get_all('metric')
-    logging.warning(self.params['accountId'])
-#    logging.warning(accountId)
-    logging.warning(self.params['propertyId'])
-    # test if self.params['propertyId'].split('-')[1]
     if self.params['accountId'] and self.params['propertyId'] and \
-      self.params['accountId'] != \
-      self.params['propertyId'].split('-')[1]:
+    self.params['accountId'] != \
+    self.params['propertyId'].split('-')[1]:
       self.params['propertyId'] = self.params['profileId'] = \
         self.params['metricList']= None
-#    elif propertyId != self.params['propertyId']:
-#      logging.warning('checking')
-#      self.params['propertyId'] = propertyId
-#      self.params['profileId'] = self.params['metricList'] = None
-#    elif profileId != self.params['profileId']:
-#      self.params['profileId'] = profileId
-#      self.params['metricList'] = self.params['segmentId'] = None
-#    else:
-#      self.params['accountId'] = accountId
-#      self.params['propertyId'] = propertyId
-#      self.params['profileId'] = profileId
-#      self.params['metricList'] = metricList
     self.params['segmentId'] = self.request.get('segmentId')
     self.params['dateRange'] = self.request.get('dateRange')
     if self.params['dateRange']:
       self.params['dateRange'] = int(self.params['dateRange'])
-#    logging.warning(self.params['accountId'])
-#    logging.warning(self.params['propertyId'])
-#    logging.warning(self.params['profileId'])
     self.render_page()
 
 class DcSandbox(Handler): 
@@ -380,7 +361,7 @@ class DashOne(Handler):
       startDate = startDate.strftime("%Y-%m-%d")
       endDate = endDate.strftime("%Y-%m-%d")
       try:
-        results = gaCRpt.get_results(profileId, 
+        results = gaCRpt.get_metrics(profileId, 
                                    startDate, 
                                    endDate, 
                                    metricLabel,

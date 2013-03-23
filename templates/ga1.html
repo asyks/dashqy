@@ -2,44 +2,63 @@
 
 {% block content %}
 
-<form name="accounts-table" method="post" action="/ga">
+<form name="ga-selection" method="post" action="/ga">
 
+<div class="account-management">
+
+<div>
 	<label>
 		Account:
 		<select name="accountId">
 			{% for account in accountList %}
-				<option value={{ account.id }} {% if account.id == accountId %}selected{% endif %}>
+				<option value={{ account.id }} 
+				{% if account.id == accountId %}
+					selected
+				{% endif %}>
 					{{ account.name }}
 				</option>
 			{% endfor %}
 		</select>
 	</label>
+</div>
 			
-	{% if propertyList %}
+{% if accountId %}
+<div>
 	<label>
 		Property:
 		<select name="propertyId">
 			{% for property in propertyList %}
-				<option value={{ property.id }} {% if property.id == propertyId %}selected{% endif %}>
+				<option value={{ property.id }}
+				{% if property.id == propertyId %}
+					selected
+				{% endif %}>
 					{{ property.name }}
 				</option>
 			{% endfor %}
 		</select>
 	</label>
-	{% endif %}
+</div>
+{% endif %}
 
-	{% if profileList %}
+{% if propertyId %}
+<div>
 	<label>
 		Profile:
 		<select name="profileId">
 			{% for profile in profileList %}
-				<option value={{ profile.id }} {% if profile.id == profileId %}selected{% endif %}>
+				<option value={{ profile.id }}
+				{% if profile.id == profileId %}
+					selected
+				{% endif %}>
 					{{ profile.name }}
 				</option>
 			{% endfor %}
 		</select>
 	</label>
-	{% endif %}
+</div>
+{% endif %}
+
+</div>
 
 {% if profileId %}
 	<label>
@@ -70,11 +89,9 @@
 			</label>
 		{% endfor %}
 	</div>
-
 {% endif %}
 
 {% if metricList %}
-
 	<table name="metric-table">
 		{% for key in results %}
 		<tr>
@@ -87,7 +104,6 @@
 		</tr>
 		{% endfor %}
 	</table>
-
 {% endif %}
 
 	<div>
