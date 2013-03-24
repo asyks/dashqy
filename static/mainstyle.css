@@ -1,15 +1,46 @@
 
-body, html {
-	margin:0;
-	padding:0;
-}
-
 body {
 	font-family: Helvetica, Arial, sans-serif;
 	font-size: 18px;
 	width: 1000px;
-	padding: 10px;
+//	padding: 10px;
 	color: #333;
+}
+
+nav.main-nav {
+	position: absolute;
+}
+
+nav.main-nav > ul {
+  list-style: none;
+//  padding: 0;
+  width: 1000px;
+}
+
+nav.main-nav > ul > li {
+  display: inline
+  padding: 10px;
+}
+
+nav.main-nav > ul > li > a {
+  text-decoration: none;
+  padding: 5px 0;
+  width: auto;
+  background: #a7a09a;
+  color: #eee;
+  float: left;
+  text-align: center;
+  border-right: 1px 
+	border-solid #fff;
+}
+
+nav.main-nav > ul > li > a:hover {
+  background: #a2b3a1;
+  color: #333;
+}
+
+div.main-container {
+	margin-top: 50px;
 }
 
 .error {
@@ -59,7 +90,7 @@ div.section {
 	background: #f5f5f5;	
 	border-style: solid;
 	border-width: 1px;
-	border-color:  #a7a09a;
+	border-color: #a7a09a;
 }
 
 div.account-management {
