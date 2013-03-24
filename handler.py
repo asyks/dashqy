@@ -36,7 +36,7 @@ decorator = OAuth2Decorator(
          'https://www.googleapis.com/auth/dfareporting',
          'https://www.googleapis.com/auth/devstorage.read_only'])
 
-gaCRpt = GaMgmt(decorator)
+gaCRpt = GoogleAnalytics(decorator)
 dfaRpt = DoubleClick(decorator)
 
 class Handler(webapp2.RequestHandler):

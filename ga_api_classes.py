@@ -14,7 +14,7 @@ if lib not in sys.path:
 ## google OAuth 2.0 and API imports
 from apiclient.discovery import build
 
-class GaMgmt(object): 
+class GoogleAnalytics(object): 
 
   def __init__(self, decorator):
     self.service = build('analytics', 'v3')
