@@ -1,46 +1,49 @@
 
 body {
+	margin: 0px;
 	font-family: Helvetica, Arial, sans-serif;
 	font-size: 18px;
-	width: 1000px;
-//	padding: 10px;
 	color: #333;
 }
 
-nav.main-nav {
-	position: absolute;
+nav.header {
+	position: relative;
+	padding-top: 15px;
+	padding-bottom: 15px;
+  background: #B3B3B3;
+	border-style: solid;
+	border-bottom-width: 2px;
+	border-top-width: 0px;
+	border-left-width: 0px;
+	border-right-width: 0px;
+	border-color: #a7a09a;
 }
 
-nav.main-nav > ul {
+nav.header > ul {
   list-style: none;
-//  padding: 0;
-  width: 1000px;
+	margin: 0px;
+	padding: 0px;
 }
 
-nav.main-nav > ul > li {
-  display: inline
+nav.header > ul > li {
+  display: inline;
   padding: 10px;
 }
 
-nav.main-nav > ul > li > a {
+nav.header > ul > li > a {
   text-decoration: none;
-  padding: 5px 0;
-  width: auto;
-  background: #a7a09a;
   color: #eee;
-  float: left;
-  text-align: center;
-  border-right: 1px 
+  border-left: 2px 
 	border-solid #fff;
 }
 
-nav.main-nav > ul > li > a:hover {
-  background: #a2b3a1;
+nav.header > ul > li > a:hover {
   color: #333;
 }
 
 div.main-container {
-	margin-top: 50px;
+	width: 1000px;
+	margin: 10px;
 }
 
 .error {
@@ -117,4 +120,11 @@ div.results-area {
 
 div.submit-button {
 	background: #f5f5f5;	
+}
+
+div.doubleclick-management {
+	position: absolute;
+	margin-top: 10px;
+	height: 200px;
+	width: 500px;
 }

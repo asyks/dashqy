@@ -1,21 +1,27 @@
 
+## standard python library imports
+import os, sys, inspect, webapp2, jinja2, logging
+from datetime import date
+from datetime  import timedelta
+
+## adding ./lib to python path to allow module mports from that dir
+libPath = os.path.split(inspect.getfile(inspect.currentframe()))
+libPath = os.path.join(libPath[0],"lib")
+libPath = os.path.abspath(libPath)
+lib = os.path.realpath(libPath)
+if lib not in sys.path:
+  sys.path.insert(0, lib)
+
 ## google OAuth 2.0 and API imports
 import httplib2, urllib2, uritemplate, gflags, gflags_validators
 from apiclient.discovery import build
 from oauth2client.appengine import OAuth2Decorator
-
-## standard python library imports
-import os, webapp2, jinja2, logging, json, pprint, urllib
-from datetime import date
-from datetime  import timedelta
 
 ## app engine library imports
 from google.appengine.api import memcache
 from google.appengine.api import users
 
 ## dashboard class/object imports
-## from utility import *
-## from datamodel import *
 from ga_api_classes import *
 from metrics_objects import *
 
@@ -85,8 +91,7 @@ class Handler(webapp2.RequestHandler):
 class Home(Handler):
 
   def get(self):
-    self.write('the home page')
-    ## self.render('home.html', **self.params)
+    self.render('index.html', **self.params)
 
 class GaSandbox(Handler): 
 
@@ -222,7 +227,7 @@ class DcSandbox(Handler):
         self.fetch_reportList()
       else:
         self.fetch_profiles()
-      self.render('dc2.html', **self.params)
+      self.render('dc1.html', **self.params)
     else:
       url = decorator.authorize_url()
       self.redirect(url)

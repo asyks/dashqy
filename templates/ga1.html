@@ -15,53 +15,53 @@
 		<label>
 			Account:
 		</label>
-			<select name="accountId">
-				{% for account in accountList %}
-					<option value={{ account.id }} 
-					{% if account.id == accountId %}
-						selected
-					{% endif %}>
-						{{ account.name }}
-					</option>
-				{% endfor %}
-			</select>
+		<select name="accountId">
+			{% for account in accountList %}
+				<option value={{ account.id }} 
+				{% if account.id == accountId %}
+					selected
+				{% endif %}>
+					{{ account.name }}
+				</option>
+			{% endfor %}
+		</select>
 	</div>
 			
-{% if accountId %}
+	{% if accountId %}
 	<div class="selector">
 		<label>
 			Property:
 		</label>
-			<select name="propertyId">
-				{% for property in propertyList %}
-					<option value={{ property.id }}
-					{% if property.id == propertyId %}
-						selected
-					{% endif %}>
-						{{ property.name }}
-					</option>
-				{% endfor %}
-			</select>
+		<select name="propertyId">
+			{% for property in propertyList %}
+				<option value={{ property.id }}
+				{% if property.id == propertyId %}
+					selected
+				{% endif %}>
+					{{ property.name }}
+				</option>
+			{% endfor %}
+		</select>
 	</div>
-{% endif %}
+	{% endif %}
 
-{% if propertyId %}
+	{% if propertyId %}
 	<div class="selector">
 		<label>
 			Profile:
 		</label>
-			<select name="profileId">
-				{% for profile in profileList %}
-					<option value={{ profile.id }}
-					{% if profile.id == profileId %}
-						selected
-					{% endif %}>
-						{{ profile.name }}
-					</option>
-				{% endfor %}
-			</select>
+		<select name="profileId">
+			{% for profile in profileList %}
+				<option value={{ profile.id }}
+				{% if profile.id == profileId %}
+					selected
+				{% endif %}>
+					{{ profile.name }}
+				</option>
+			{% endfor %}
+		</select>
 	</div>
-{% endif %}
+	{% endif %}
 
 </div>
 
@@ -73,24 +73,24 @@
 		<label>
 			Date Range:
 		</label>
-			<select name="dateRange">
-				<option value=1>Last Week</option>
-				<option value=2>Last 30 Days</option>
-				<option value=3>Last 90 Days</option>
-			</select>
+		<select name="dateRange">
+			<option value=1>Last Week</option>
+			<option value=2>Last 30 Days</option>
+			<option value=3>Last 90 Days</option>
+		</select>
 	</div>
 
 	<div class="selector">
 		<label>
 			Segments:
 		</label>
-			<select name="segmentId">
-			{% for segment in segmentList %}
-				<option value="{{ segment.id }}">
-					{{ segment.name }}
-				</option>
-			{% endfor %}
-			</select>
+		<select name="segmentId">
+		{% for segment in segmentList %}
+			<option value="{{ segment.id }}">
+				{{ segment.name }}
+			</option>
+		{% endfor %}
+		</select>
 	</div>
 
 	<div class="selector">
@@ -126,7 +126,6 @@
 		</table>
 	</div>
 {% endif %}
-
 
 </form>
 

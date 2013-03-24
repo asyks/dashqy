@@ -1,8 +1,18 @@
 
+## standard python library imports
+import os, sys, inspect
+
+## adding ./lib to python path to allow module imports from that dir
+libPath = os.path.split(inspect.getfile(inspect.currentframe()))
+libPath = os.path.join(libPath[0],"lib")
+libPath = os.path.abspath(libPath)
+lib = os.path.realpath(libPath)
+if lib not in sys.path:
+  sys.path.insert(0, lib)
+  sys.path.insert(0, lib)
+
 ## google OAuth 2.0 and API imports
 from apiclient.discovery import build
-
-## ga_service = build('analytics', 'v3')
 
 class GaMgmt(object): 
 

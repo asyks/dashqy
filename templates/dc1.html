@@ -2,37 +2,82 @@
 
 {% block content %}
 
-<form name="profiles-table" method="post" action="/dc">
-	<div>Profiles:</div>
-	<table>
-	{% for profile in profileList %}
-		<tr>
-			<td>
-				<input type="radio" name="profileId" value={{ profile.profileId }}>
-			</td>
-			<td>
+<form name="dc-selection" method="post" action="/dc">
+
+<div class="section selection-button">
+	DoubleClick Floodlight Query Tool
+	<input type="submit" value="SELECT">
+</div>
+
+<div class="section doubleclick-management">
+
+	<div class="selector">
+		<label>
+			Profiles:
+		</label>
+		<select name="profileId">
+			{% for profile in profileList %}
+				<option value={{ profile.profileId }}
+				{% if profile.profileId == profileId %}
+					selected{% endif %}>
 				{{ profile.profileId }}
-			</td>
-		</tr>
-	{% endfor %}
-	</table>
-	<div>Metrics:</div>
-  <table>
-  {% for metric in metrics %}
-    <tr>
-			<td>
-				<input type="checkbox" name="metric" value={{ metric }}>
-      </td>
-      <td>
-        <label>{{ metric }}</label>
-			</td>
-    </tr>
-  {% endfor %}
-	</table>
-	<div>
-			<input type="submit" value="Select Profile">
+				</option>
+			{% endfor %}
+		</select>
 	</div>
+
+	{% if reportList %}
+	<div class="selector">
+		<label>
+			Reports:
+		</label>
+		<select name="reportId">
+			{% for report in reportList %}
+				<option value={{ report.id }} 
+				{% if report.id == reportId %}
+					selected
+				{% endif %}>
+					{{ report.id }}
+				</option>
+			{% endfor %}
+		</select>
+	</div>
+	{% endif %}
+
+	{% if files %}
+	<div class="selector">
+		<label>
+			Files:
+		</label>
+		<select name="fileId">
+			{% for f in files %}
+				<option value={{ f.id }}
+				{% if f.id == fileId %}
+					selected
+				{% endif %}>
+					{{ f.id }}
+				</option>
+			{% endfor %}
+		</select>
+	</div>
+	{% endif %}
+
+	{% if fileObj %}
+	<div class="selector">
+		<label>
+			Report URL:
+		</label>
+		<select name="apiUrl">
+			<option value={{ fileObj.apiUrl }}
+			{% if fileObj.apiUrl == apiUrl %}
+				selected
+			{% endif %}>
+				{{ fileObj.id }}
+			</option>
+		</select>
+	</div>
+	{% endif %}
+
 </form>
-<br>
 
 {% endblock %}
