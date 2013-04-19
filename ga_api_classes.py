@@ -1,6 +1,6 @@
 
 ## standard python library imports
-import os, sys, inspect
+import os, sys, inspect, logging
 
 ## adding ./lib to python path to allow module imports from that dir
 libPath = os.path.split(inspect.getfile(inspect.currentframe()))
@@ -68,7 +68,8 @@ class GoogleAnalytics(object):
       ids='ga:' + profileId,
       start_date=startDate,
       end_date=endDate,
-      metrics=metrics)
+      metrics=metrics,
+      segment='gaid::' + segmentId)
     http = self.decorator.http()
     response = results.execute(http=http)
     return response

@@ -157,23 +157,11 @@ class GaSandbox(Handler):
     metricLabel = 'ga:'
     metricList = self.params['metricList'][:10]
     metricLabel += (',' + metricLabel).join(metricList)
-    startDate = endDate = date.today()
-    if self.params['dateRange'] == 1:
-      startDate -= timedelta(days=8)
-      endDate -= timedelta(days=1)
-    elif self.params['dateRange'] == 2:
-      startDate -= timedelta(days=31)
-      endDate -= timedelta(days=1)
-    elif self.params['dateRange'] == 3:
-      startDate -= timedelta(days=1)
-      endDate -= timedelta(days=91)
-    startDate = startDate.strftime("%Y-%m-%d")
-    endDate = endDate.strftime("%Y-%m-%d")
 
     try:
       results = gaCRpt.get_metrics(self.params['profileId'], 
-        startDate, 
-        endDate, 
+        self.params['startDate'], 
+        self.params['endDate'], 
         metricLabel,
         self.params['segmentId'])
       self.params['results'] = results.get('totalsForAllResults')
@@ -194,9 +182,8 @@ class GaSandbox(Handler):
       self.params['propertyId'] = self.params['profileId'] = \
         self.params['metricList']= None
     self.params['segmentId'] = self.request.get('segmentId')
-    self.params['dateRange'] = self.request.get('dateRange')
-    if self.params['dateRange']:
-      self.params['dateRange'] = int(self.params['dateRange'])
+    self.params['startDate'] = self.request.get('startDate')
+    self.params['endDate'] = self.request.get('endDate')
     self.render_page()
 
 class DcSandbox(Handler): 
@@ -291,6 +278,7 @@ class DcSandbox(Handler):
       print 'There was a http error: %s' % error
 
   def fetch_csv(self):
+    logging.warning('fetch_csv')
     http = httplib2.Http()
     response, content = http.request(
       self.params['fileObj'].get('apiUrl'),
@@ -399,6 +387,7 @@ app = webapp2.WSGIApplication([(r'/?', Home),
                                 decorator.callback_handler()),
                                (r'/ga/?', GaSandbox),
                                (r'/dc/?', DcSandbox),
+                               (r'/dc/metrics/?', DcSandbox),
                                (r'/dash1/?', DashOne),
                                (r'/logout/?', Logout),
                                (r'/.*', Error)

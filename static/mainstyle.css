@@ -64,11 +64,9 @@ select {
 
 label {
 	display: block;
-	width: 60px;
 	float: left;
 	padding-right: 10px;
 	text-align: right;
-	width: 120px;
 }
 
 select.multi-select {
@@ -127,4 +125,22 @@ div.doubleclick-management {
 	margin-top: 10px;
 	height: 200px;
 	width: 500px;
+}
+
+div.start-date {
+	width: auto;
+	float: left;
+}
+
+div.end-date {
+	width: auto;
+	float: right;
+}
+
+div.segments {
+	margin-top: 35px;
+}
+
+input[type=date] {
+	width: 120px;
 }
