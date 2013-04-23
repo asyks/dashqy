@@ -7,24 +7,35 @@
 <meta charset="utf-8">
 <title>GA Dashboard</title>
 
-<link type="text/css" rel="stylesheet" href="/static/mainstyle.css">
+<link type="text/css" rel="stylesheet" href="/static/css/main.css">
+<link type="text/css" rel="stylesheet" href="/static/css/nav.css">
 <script type="text/javascript" src="/static/jquery-1.8.3.min.js">
 </script>
+
+{% block head %}
+{% endblock %}
 
 </head>
 
 <body>
 
-<nav class="header">
+<nav class="main-nav">
+	<div class="logo">
+		<a href="/">DASHboard</a>
+	</div>
 	<ul>
 		<li>
-			<a href='/'>Home</a>
+			<a href='/'>HOME</a>
 		</li>
-		<li>
-			<a href='/ga'>Google Analytics Query Tool</a>
-		</li>
-		<li>
-			<a href='/dc'>DoubleClick Floodlight Query Tool</a>
+		<li>QUERY TOOLS
+			<ul>
+				<li>
+					<a href='/ga'>Google Analytics</a>
+				</li>
+				<li>
+					<a href='/dc'>DoubleClick</a>
+				</li>
+			</ul>
 		</li>
 	</ul>
 </nav>
