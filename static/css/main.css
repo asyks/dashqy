@@ -1,9 +1,9 @@
 
 body {
 	margin: 0px;
-	font-family: Helvetica, Arial, sans-serif;
+	font-family: 'ABeeZee', sans-serif;
 	font-size: 18px;
-	color: #E0FFFF;
+	color: #388E8E;
 	background-color: #97CEEC;
   background: linear-gradient(top, #97CEEC 0%, #B4CDCD 50%)
   background: -moz-linear-gradient(top, #97CEEC 0%, #B4CDCD 50%)
@@ -21,6 +21,10 @@ div.main-container {
 
 a {
   text-decoration: none;
+}
+
+div.home-text {
+	color: #E0FFFF;
 }
 
 div.selector {
