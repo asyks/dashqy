@@ -85,7 +85,7 @@ class Handler(webapp2.RequestHandler):
     self.user = users.get_current_user()
     if not self.user:
       request_uri = self.request.uri
-      login_url = users.create_login_url('/ga')
+      login_url = users.create_login_url(request_uri)
       self.redirect(login_url)
 
 class Home(Handler):

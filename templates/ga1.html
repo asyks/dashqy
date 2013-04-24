@@ -4,17 +4,18 @@
 
 <form name="ga-selection" method="post" action="/ga">
 
-<div class="section selection-button">
+<div class="page-title">
 	Google Analytics Query Tool
+</div>
+
+<div class="selection-button">
 	<input type="submit" value="SELECT">
 </div>
 
-<div class="section account-management">
+<div class="section google-analytics">
 
 	<div class="selector">
-		<label>
-			Account:
-		</label>
+		Account
 		<select name="accountId">
 			{% for account in accountList %}
 				<option value={{ account.id }} 
@@ -29,9 +30,7 @@
 			
 	{% if accountId %}
 	<div class="selector">
-		<label>
-			Property:
-		</label>
+		Property
 		<select name="propertyId">
 			{% for property in propertyList %}
 				<option value={{ property.id }}
@@ -47,9 +46,7 @@
 
 	{% if propertyId %}
 	<div class="selector">
-		<label>
-			Profile:
-		</label>
+		Profile
 		<select name="profileId">
 			{% for profile in profileList %}
 				<option value={{ profile.id }}
@@ -63,30 +60,16 @@
 	</div>
 	{% endif %}
 
-</div>
-
 {% if profileId %}
 
-<div class="section metric-selection">
-
-	<div class="start-date">
-		<label>
-			Start Date:
-		</label>
+	<div class="selector">
+		Start/End
 		<input type="date" name="startDate">
-	</div>
-
-	<div class="end-date">
-		<label>
-			End Date:
-		</label>
 		<input type="date" name="endDate">
 	</div>
 
 	<div class="selector segments">
-		<label>
-			Segments:
-		</label>
+		Segments
 		<select name="segmentId">
 		{% for segment in segmentList %}
 			<option value="{{ segment.id }}">
@@ -97,9 +80,7 @@
 	</div>
 
 	<div class="selector">
-		<label>
-			Metrics:
-		</label>
+		Metrics
 		<select name="metric" multiple="multiple" class="multi-select">
 		{% for metric in metrics %}
 			<option value="{{ metric }}">
@@ -109,26 +90,26 @@
 		</select>
 	</div>
 
+{% endif %}
+
 </div>
 
-{% endif %}
-
+<div class="section results-area">
 {% if metricList %}
-	<div class="section results-area">
-		<table name="results-table">
-			{% for key in results %}
-			<tr>
-				<td>	
-					{{ key.split(':')[1] }}:
-				</td>
-				<td>	
-					{{ results[key] }}	
-				</td>
-			</tr>
-			{% endfor %}
-		</table>
-	</div>
+	<table name="results-table" class="results">
+		{% for key in results %}
+		<tr>
+			<td>	
+				{{ key.split(':')[1] }}:
+			</td>
+			<td>	
+				{{ results[key] }}	
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
 {% endif %}
+</div>
 
 </form>
 
