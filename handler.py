@@ -165,7 +165,8 @@ class GaSandbox(Handler):
         self.params['endDate'], 
         metricLabel,
         self.params['segmentId'])
-      self.params['results'] = process.process_ga_metrics(results)
+      self.params['results'] =
+      process.process_ga_metrics(results)
     except TypeError, error:
       print 'There was a type error: %s' % error
 

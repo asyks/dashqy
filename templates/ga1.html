@@ -64,8 +64,8 @@
 
 	<div class="selector">
 		Start/End
-		<input type="date" name="endDate">
-		<input type="date" name="startDate">
+		<input id="end-date" type="date" name="endDate" value="{{endDate}}">
+		<input id="start-date" type="date" name="startDate" value="{{startDate}}">
 	</div>
 
 	<div class="selector segments">
@@ -81,7 +81,7 @@
 
 	<div class="selector">
 		Metrics
-		<select name="metric" multiple="multiple" class="multi-select">
+		<select id="multi" name="metric" multiple="multiple" class="multi-select">
 		{% for metric in metrics %}
 			<option value="{{ metric }}">
 				{{ metric }}
