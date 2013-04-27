@@ -24,6 +24,7 @@ from google.appengine.api import users
 ## dashboard class/object imports
 from ga_api_classes import *
 from metrics_objects import *
+import process
 
 path = os.path.dirname(__file__)
 templates = os.path.join(path, 'templates')
@@ -164,7 +165,7 @@ class GaSandbox(Handler):
         self.params['endDate'], 
         metricLabel,
         self.params['segmentId'])
-      self.params['results'] = results.get('totalsForAllResults')
+      self.params['results'] = process.process_ga_metrics(results)
     except TypeError, error:
       print 'There was a type error: %s' % error
 
