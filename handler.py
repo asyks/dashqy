@@ -165,8 +165,7 @@ class GaSandbox(Handler):
         self.params['endDate'], 
         metricLabel,
         self.params['segmentId'])
-      self.params['results'] =
-      process.process_ga_metrics(results)
+      self.params['results'] = process.process_ga_metrics(results)
     except TypeError, error:
       print 'There was a type error: %s' % error
 
@@ -228,7 +227,7 @@ class DcSandbox(Handler):
       self.params['profileList'] = profileList 
     except TypeError, error:
       print 'There was a type error: %s' % error
-    except HttpError, error:
+    except:
       print 'There was a http error: %s' % error
 
   def fetch_reportList(self):

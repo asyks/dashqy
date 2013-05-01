@@ -21,10 +21,15 @@ div.main-container {
 
 a {
   text-decoration: none;
+	color: #388E8E;
+}
+
+a:hover {
+	color: #E0FFFF;
 }
 
 div.home-text {
-	color: #E0FFFF;
+	color: #388E8E;
 }
 
 div.selector {

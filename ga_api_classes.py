@@ -131,3 +131,11 @@ class DoubleClick(object):
     http = self.decorator.http()
     response = results.execute(http=http)
     return response
+"""
+class CloudStorage(object): 
+
+  def __init__(self, decorator):
+    self.service = build('storage', 'vlebtal')
+    self.decorator = decorator
+"""
+
