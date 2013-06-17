@@ -39,6 +39,7 @@ decorator = OAuth2Decorator(
 
 gaCRpt = GoogleAnalytics(decorator)
 dfaRpt = DoubleClick(decorator)
+gcs = CloudStorage(decorator)
 
 class Handler(webapp2.RequestHandler):
 
@@ -206,9 +207,9 @@ class DcSandbox(Handler):
   def render_page(self):
     if decorator.has_credentials():
       if self.params['apiUrl']:
-        self.fetch_csv()
+        self.fetch_report_file()
       if self.params['fileId']:
-        self.fetch_file()
+        self.fetch_report_url()
       elif self.params['reportId']:
         self.fetch_fileList()
       elif self.params['profileId']:
@@ -225,10 +226,10 @@ class DcSandbox(Handler):
       profileList = list()
       dfaRpt.get_profiles(profileList) 
       self.params['profileList'] = profileList 
-    except TypeError, error:
-      print 'There was a type error: %s' % error
+    except TypeError:
+      print 'There was a type error'
     except:
-      print 'There was a http error: %s' % error
+      print 'There was a http error'
 
   def fetch_reportList(self):
     try:
@@ -265,7 +266,7 @@ class DcSandbox(Handler):
     except HttpError, error:
       print 'There was a http error: %s' % error
 
-  def fetch_file(self):
+  def fetch_report_url(self):
     try:
       fileObj = dict()
       response = dfaRpt.get_file(self.params['profileId'],
@@ -277,15 +278,12 @@ class DcSandbox(Handler):
       print 'There was a type error: %s' % error
     except HttpError, error:
       print 'There was a http error: %s' % error
-
-  def fetch_csv(self):
-    logging.warning('fetch_csv')
-    http = httplib2.Http()
-    response, content = http.request(
-      self.params['fileObj'].get('apiUrl'),
-       method='GET')
-    logging.warning(response)
-    logging.warning(content)
+ 
+  def fetch_report_file(self):
+    response = gcs.get_report(self.params['apiUrl'])
+    self.params['file'] = response
+    fieldsDict = gcs.parse_report(self.params['file'])
+    logging.warning(fieldsDict)
 
   def fetch_metrics(self):
     try:
@@ -369,12 +367,13 @@ class DashOne(Handler):
       url = decorator.authorize_url()
       self.redirect(url)
 
-class Logout(Handler): ## Handler for Home page requests
+class Logout(Handler): ## Handler for Logout requests
 
+  @decorator.oauth_aware
   def get(self):
     self.logout()
     request_uri = self.request.uri
-    login_url = users.create_logout_url('/resume')
+    login_url = users.create_logout_url('/')
     self.redirect(login_url)
 
 class Error(Handler): ## Default handler for 404 errors

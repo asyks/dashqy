@@ -1,6 +1,6 @@
 
 ## standard python library imports
-import os, sys, inspect, logging
+import os, sys, inspect, re, logging
 
 ## adding ./lib to python path to allow module imports from that dir
 libPath = os.path.split(inspect.getfile(inspect.currentframe()))
@@ -131,11 +131,33 @@ class DoubleClick(object):
     http = self.decorator.http()
     response = results.execute(http=http)
     return response
-"""
+
 class CloudStorage(object): 
 
   def __init__(self, decorator):
-    self.service = build('storage', 'vlebtal')
+    self.service = build('storage', 'v1beta2')
     self.decorator = decorator
-"""
 
+  def get_report(self, apiUrl):
+    urlPieces = apiUrl.split('/')
+    bucket = urlPieces[-2]
+    obj = urlPieces[-1]
+    reportFile = self.service.objects().get_media(bucket=bucket, object=obj)
+    http = self.decorator.http()
+    response = reportFile.execute(http=http)
+    return response 
+
+  def parse_report(self, reportFile):
+    datePosition = re.search('Date Range,[\d\s/-]*', reportFile).span()
+    dateRangeStr = reportFile[datePosition[0]:datePosition[1]]
+    fieldStrs = reportFile[reportFile.find('Report Fields'):].split('\n')
+    fieldsList = []
+    fieldsDict = {}
+    for fieldStr in fieldStrs:
+      fields = fieldStr.split(',')
+      fieldsList.append(fields[:])
+    for i1 in range(0, len(fieldsList[1])):
+      fieldsDict[fieldsList[1][i1]] = []
+      for i2 in range(2, len(fieldsList)-1):
+        fieldsDict[fieldsList[1][i1]].append(fieldsList[i2][i1])
+    return fieldsDict
