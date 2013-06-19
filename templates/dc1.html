@@ -78,6 +78,25 @@
 	</div>
 	{% endif %}
 
+</div>
+
+	<div class="section dc-results-area">
+	{% if fieldsDict %}
+		<table name="results-table" class="results">
+			{% for key in fieldsDict %}
+			<tr>
+				<td>	
+					{{ key }}
+				</td>
+				<td>	
+					{{ fieldsDict[key][0] }}	
+				</td>
+			</tr>
+			{% endfor %}
+		</table>
+	{% endif %}
+	</div>
+
 </form>
 
 {% endblock %}

@@ -84,6 +84,13 @@ div.results-area {
 	width: 450px;
 }
 
+div.dc-results-area {
+	float: right;
+	margin-top: 10px;
+	height: 350px;
+	width: 400px;
+}
+
 table.results {
 	margin-top: 15px;
 	padding-left: 10px;	
@@ -95,6 +102,7 @@ table.results > tr > td{
 }
 
 div.doubleclick-management {
+	float: left;
 	margin-top: 10px;
 	height: 200px;
 	width: 500px;

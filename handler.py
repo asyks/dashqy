@@ -281,26 +281,8 @@ class DcSandbox(Handler):
  
   def fetch_report_file(self):
     response = gcs.get_report(self.params['apiUrl'])
-    self.params['file'] = response
-    fieldsDict = gcs.parse_report(self.params['file'])
-    logging.warning(fieldsDict)
-
-  def fetch_metrics(self):
-    try:
-      metricList = list()
-      startDate = endDate = date.today()
-      startDate -= timedelta(days=15)
-      endDate -= timedelta(days=1)
-      startDate = startDate.strftime("%Y-%m-%d")
-      endDate = endDate.strftime("%Y-%m-%d")
-      dfaRpt.get_metrics(profileId=self.params['profileId'],
-        startDate=startDate,
-        endDate=endDate,
-        dimensionName=self.params['metricList'][0]) 
-    except TypeError, error:
-      print 'There was a type error: %s' % error
-    except HttpError, error:
-      print 'There was a http error: %s' % error
+    self.params['fieldsDict'] = gcs.parse_report(response)
+    logging.warning(self.params['fieldsDict'])
 
   def get(self):
     self.render_page()
@@ -327,6 +309,23 @@ class DcMetrics(Handler):
       return
     except TypeError, error:
       print 'There was a type error: %s' % error
+
+  def fetch_metrics(self):
+    try:
+      metricList = list()
+      startDate = endDate = date.today()
+      startDate -= timedelta(days=15)
+      endDate -= timedelta(days=1)
+      startDate = startDate.strftime("%Y-%m-%d")
+      endDate = endDate.strftime("%Y-%m-%d")
+      dfaRpt.get_metrics(profileId=self.params['profileId'],
+        startDate=startDate,
+        endDate=endDate,
+        dimensionName=self.params['metricList'][0]) 
+    except TypeError, error:
+      print 'There was a type error: %s' % error
+    except HttpError, error:
+      print 'There was a http error: %s' % error
 
 ## This is the test class for the combined GA and DFA dasbhboard
 ## resuming work on it depends on getting DFA metric fetching working
