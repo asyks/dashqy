@@ -13,6 +13,7 @@ body {
 div.main-container {
 	width: 940px;
 	margin: 10px auto;
+	margin-top: 25px;
 }
 
 .error {
@@ -30,6 +31,12 @@ a:hover {
 
 div.home-text {
 	color: #388E8E;
+}
+
+div.auth {
+	width: 300px;
+	float: right;
+  font-size: 14px;
 }
 
 div.selector {

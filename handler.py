@@ -89,9 +89,11 @@ class Handler(webapp2.RequestHandler):
       request_uri = self.request.uri
       login_url = users.create_login_url(request_uri)
       self.redirect(login_url)
+    self.params['user'] = self.user
 
 class Home(Handler):
 
+  @decorator.oauth_aware
   def get(self):
     self.render('index.html', **self.params)
 
